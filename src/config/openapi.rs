@@ -8,7 +8,7 @@ use utoipa::{
 };
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::{config::state::AppState, shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields}};
+use crate::{adapters::inbounds::rest::health_controller, config::{routes, state::AppState}, shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields}};
 
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
@@ -77,9 +77,10 @@ impl Modify for SecurityAddon {
         // (path = "/specialties", api = crate::controllers::specialties::ApiDoc),
         // (path = "/schedules", api = crate::controllers::scheduler::ApiDoc),
         // (path = "/appointments", api = crate::controllers::appointments::ApiDoc),
-        // (path = "/prescriptions", api = crate::controllers::prescriptions::ApiDoc),
+        (path = "/health", api = health_controller::ApiDoc),
     ),
     tags(
+        (name = "infra", description = "Infra state"),
         (name = "auth", description = "Authorization & authentication management"),
         (name = "users", description = "Users management"),
         (name = "locations", description = "Locations management"),
