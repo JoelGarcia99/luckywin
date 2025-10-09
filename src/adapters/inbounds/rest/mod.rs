@@ -1,1 +1,2 @@
-pub mod health_controller;
+pub mod dtos;
+pub mod controllers;

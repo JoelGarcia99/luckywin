@@ -16,3 +16,5 @@ sea-orm = {version="1.1", features=["sqlx-postgres", "runtime-tokio-rustls", "ma
 chrono = {version="0.4", features=["serde"]}
 utoipa = {version="5.4", features=["uuid", "chrono"]}
 utoipa-swagger-ui = { version = "9.0.2", default-features = false, features = ["axum", "vendored"] }
+tower-http = { version = "0.6", features = ["normalize-path"] }
+async-trait = "0.1"

@@ -33,13 +33,7 @@ generate-entities:
 	  echo "Generating entities into $$TMP_DIR"; \
 	  $(SEA) generate entity -u $(DATABASE_URL) -o $$TMP_DIR; \
 	  echo "Syncing generated entities"; \
-	  rsync -a --delete $$TMP_DIR/ ./src/entities/; \
-	  rm -rf $$TMP_DIR; \
-	  if [ -f ./src/entities/user_professions.rs ]; then \
-	    echo "Normalizing user_professions relations to Admin/Professional"; \
-	    perl -0777 -pi -e 's/(\#\[sea_orm\([\s\S]*?from\s*=\s*\"Column::ApprovedBy\"[\s\S]*?\)\]\s*)\n\s*Users\w*,/$$1\n    Admin,/s' ./src/entities/user_professions.rs; \
-	    perl -0777 -pi -e 's/(\#\[sea_orm\([\s\S]*?from\s*=\s*\"Column::IdUser\"[\s\S]*?\)\]\s*)\n\s*Users\w*,/$$1\n    Professional,/s' ./src/entities/user_professions.rs; \
-	  fi; \
-	  echo "Done."
+	  rsync -a --delete $$TMP_DIR/ ./src/domain/entities/; \
+	  rm -rf $$TMP_DIR;
 seed:
 	DATABASE_URL=$(DATABASE_URL) cargo run --manifest-path ./migration/Cargo.toml --bin seed -- up -u $(DATABASE_URL)

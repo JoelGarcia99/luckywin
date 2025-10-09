@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
 use axum::Router;
+use tower_http::normalize_path::NormalizePathLayer;
 
 use crate::config::{db::connect_db, tracing::build_tracing};
 
 pub mod adapters;
 pub mod shared;
 pub mod config;
+pub mod domain;
 
 #[tokio::main]
 async fn main() {
@@ -15,6 +17,7 @@ async fn main() {
 
     // initializing tracing for logs
     build_tracing(&secrets);
+    tracing::debug!("Tracings defined");
 
     let state = Arc::new(config::state::AppState {
         secrets: Arc::clone(&secrets),
@@ -27,7 +30,8 @@ async fn main() {
             "/api/v1",
             config::routes::build_routes_v1().merge(config::openapi::build_docs()),
         )
-        .with_state(Arc::clone(&state));
+        .with_state(Arc::clone(&state))
+        .layer(NormalizePathLayer::trim_trailing_slash());
 
     // listening on target port
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();

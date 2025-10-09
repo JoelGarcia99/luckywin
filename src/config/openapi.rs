@@ -1,19 +1,33 @@
-
 use std::sync::Arc;
 
 use axum::{response::Html, routing::get};
 use utoipa::{
-    openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
     Modify, OpenApi,
+    openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
 };
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::{adapters::inbounds::rest::health_controller, config::{routes, state::AppState}, shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields}};
+use crate::{
+    adapters::{
+        inbounds::rest::{
+            controllers,
+            dtos::{
+                client::ClientsInputDto,
+                game::CreateGameDto,
+                lottery::{CreateLotteryDto, LotteriesPurchaseDto},
+            },
+        },
+        outbound::rest::dtos::{client::ClientOutputDto, game::GameOutputDto},
+    },
+    config::state::AppState,
+    shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields},
+};
+
 
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
-        .route("/scalar", get(build_scalar_html))
-        .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .route("/docs", get(build_scalar_html))
+        .merge(SwaggerUi::new("/swagger-docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
 }
 
 async fn build_scalar_html() -> Html<&'static str> {
@@ -77,10 +91,12 @@ impl Modify for SecurityAddon {
         // (path = "/specialties", api = crate::controllers::specialties::ApiDoc),
         // (path = "/schedules", api = crate::controllers::scheduler::ApiDoc),
         // (path = "/appointments", api = crate::controllers::appointments::ApiDoc),
-        (path = "/health", api = health_controller::ApiDoc),
+        (path = "/health", api = controllers::health::ApiDoc),
+        (path = "/lottery", api = controllers::game::ApiDoc),
     ),
     tags(
         (name = "infra", description = "Infra state"),
+        (name = "lottery", description = "Lottery associated endpoints"),
         (name = "auth", description = "Authorization & authentication management"),
         (name = "users", description = "Users management"),
         (name = "locations", description = "Locations management"),
@@ -93,9 +109,15 @@ impl Modify for SecurityAddon {
     modifiers(&SecurityAddon),
     components(schemas(
         // CreateUserDto,
+        ClientsInputDto,
+        ClientOutputDto,
+        CreateGameDto,
+        GameOutputDto,
+        CreateLotteryDto,
+        LotteriesPurchaseDto,
         Rfc7807Problem,
         ValidatorError,
-        ValidatorErrorFields
+        ValidatorErrorFields,
     )),
     servers( (url = "/api/v1", description = "API v1 base") )
 )]

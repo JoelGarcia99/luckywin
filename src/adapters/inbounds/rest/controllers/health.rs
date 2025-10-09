@@ -4,7 +4,7 @@ use axum::{extract::State, response::IntoResponse};
 use utoipa::OpenApi;
 
 use crate::{
-    config::{routes::CHECK_HEALTH, state::AppState},
+    config::state::AppState,
     shared::{errors::Rfc7807Problem, infra::health_service},
 };
 
