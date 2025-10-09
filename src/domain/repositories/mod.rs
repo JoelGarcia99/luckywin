@@ -1,2 +1,3 @@
-pub mod clients_repository;
-pub mod games_repository;
+pub mod clients;
+pub mod games;
+pub mod lotteries;

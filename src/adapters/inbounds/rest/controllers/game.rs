@@ -4,8 +4,8 @@ use axum::{extract::State, response::IntoResponse, Json};
 use utoipa::OpenApi;
 
 use crate::{
-    adapters::inbounds::rest::lottery_dto::LotteriesPurchaseDto, config::state::AppState,
-    shared::errors::Rfc7807Problem,
+    adapters::inbounds::rest::{dtos::lottery::LotteriesPurchaseDto}, config::state::AppState,
+    shared::errors::{Rfc7807Problem, StandardOutput},
 };
 
 #[derive(OpenApi)]
@@ -27,6 +27,6 @@ pub struct ApiDoc;
 pub async fn purchase_lottery(
     State(state): State<Arc<AppState>>,
     Json(body): Json<LotteriesPurchaseDto>,
-) -> impl IntoResponse {
-    ()
+) -> StandardOutput<String>{
+    todo!()
 }

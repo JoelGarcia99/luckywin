@@ -3,8 +3,7 @@ use std::sync::Arc;
 use sea_orm::ConnectionTrait;
 
 use crate::{
-    adapters::outbound::rest::dtos::game::GameOutputDto,
-    domain::repositories::games_repository::GamesRepo,
+    adapters::outbound::rest::dtos::game::GameOutputDto, domain::repositories::games::GamesRepo,
     shared::errors::StandardOutput,
 };
 

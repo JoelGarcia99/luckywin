@@ -5,11 +5,11 @@ use uuid::Uuid;
 use crate::{
     adapters::outbound::rest::dtos::client::ClientOutputDto,
     domain::entities::users,
-    shared::errors::{Rfc7807Problem, StandardOutput},
+    shared::errors::StandardOutput,
 };
 
 #[async_trait]
-pub trait ClientsRepo: Send + Sync {
+pub trait ClientsRepo: Send + Sync + Copy {
     async fn create_client<C>(
         &self,
         client: &users::ActiveModel,

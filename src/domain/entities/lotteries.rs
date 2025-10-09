@@ -9,7 +9,8 @@ pub struct Model {
     pub id: Uuid,
     pub id_game: Uuid,
     pub serial: i64,
-    pub numbers: i32,
+    #[sea_orm(column_type = "Decimal(Some((39, 0)))")]
+    pub numbers: Decimal,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
     pub deleted_at: Option<DateTimeWithTimeZone>,

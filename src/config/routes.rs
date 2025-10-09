@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    adapters::inbounds::rest::controllers::game::purchase_lottery, config::state::AppState,
-    shared::infra::health_service::check_health,
+    adapters::inbounds::rest::controllers::{game::purchase_lottery, health::check_health}, config::state::AppState,
 };
 
 pub const CHECK_HEALTH: &str = "/health";

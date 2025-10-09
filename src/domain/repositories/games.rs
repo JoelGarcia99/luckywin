@@ -5,11 +5,11 @@ use uuid::Uuid;
 use crate::{
     adapters::outbound::rest::dtos::game::GameOutputDto,
     domain::entities::games,
-    shared::errors::{Rfc7807Problem, StandardOutput},
+    shared::errors::StandardOutput,
 };
 
 #[async_trait]
-pub trait GamesRepo: Send + Sync {
+pub trait GamesRepo: Send + Sync + Copy {
     async fn create<C>(
         &self,
         game: &games::ActiveModel,

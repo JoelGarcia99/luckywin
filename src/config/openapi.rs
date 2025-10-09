@@ -14,15 +14,16 @@ use crate::{
             dtos::{
                 client::ClientsInputDto,
                 game::CreateGameDto,
-                lottery::{CreateLotteryDto, LotteriesPurchaseDto},
+                lottery::{CreateLotteryTicketDto, LotteriesPurchaseDto},
             },
         },
-        outbound::rest::dtos::{client::ClientOutputDto, game::GameOutputDto},
+        outbound::rest::dtos::{
+            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto,
+        },
     },
     config::state::AppState,
     shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields},
 };
-
 
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
@@ -113,7 +114,8 @@ impl Modify for SecurityAddon {
         ClientOutputDto,
         CreateGameDto,
         GameOutputDto,
-        CreateLotteryDto,
+        CreateLotteryTicketDto,
+        LotteryOutputDto,
         LotteriesPurchaseDto,
         Rfc7807Problem,
         ValidatorError,

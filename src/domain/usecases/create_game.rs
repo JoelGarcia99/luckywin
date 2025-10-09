@@ -10,14 +10,13 @@ use crate::{
         inbounds::rest::dtos::game::CreateGameDto, outbound::rest::dtos::game::GameOutputDto,
     },
     domain::{
-        entities::games, repositories::games_repository::GamesRepo,
-        usecases::get_last_active_game::GetLastActiveGameUseCase,
+        entities::games, repositories::games::GamesRepo, usecases::get_last_active_game::GetLastActiveGameUseCase
     },
     shared::errors::{Rfc7807Problem, StandardOutput},
 };
 
 /// Creates a new game/lottery
-pub struct CreateGameUseCase<R: GamesRepo + Clone, C: ConnectionTrait> {
+pub struct CreateGameUseCase<R: GamesRepo, C: ConnectionTrait> {
     repo: R,
     db: Arc<C>,
 }
@@ -28,8 +27,7 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
     }
 
     pub async fn execute(&self, game_dto: &CreateGameDto) -> StandardOutput<GameOutputDto> {
-        let last_active_use_case =
-            GetLastActiveGameUseCase::new(self.repo.clone(), self.db.clone());
+        let last_active_use_case = GetLastActiveGameUseCase::new(self.repo, Arc::clone(&self.db));
 
         // getting last active game first to see if we can enable a new one
         match last_active_use_case.execute().await {

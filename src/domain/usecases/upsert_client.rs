@@ -8,7 +8,7 @@ use crate::{
         inbounds::rest::dtos::client::ClientsInputDto,
         outbound::rest::dtos::client::ClientOutputDto,
     },
-    domain::{entities::users, enums::roles::Roles, repositories::clients_repository::ClientsRepo},
+    domain::{entities::users, enums::roles::Roles, repositories::clients::ClientsRepo},
     shared::errors::StandardOutput,
 };
 

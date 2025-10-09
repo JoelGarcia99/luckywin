@@ -17,10 +17,10 @@ pub struct LotteriesPurchaseDto {
     pub client_cellphone: String,
     pub location: Option<String>,
     /// Purchased numbers for lottery. Constrained to 5 numbers
-    pub tickets: Vec<CreateLotteryDto>,
+    pub tickets: Vec<CreateLotteryTicketDto>,
 }
 
 #[derive(Debug, Deserialize, ToSchema, Default)]
-pub struct CreateLotteryDto {
+pub struct CreateLotteryTicketDto {
     pub numbers: Vec<u8>,
 }

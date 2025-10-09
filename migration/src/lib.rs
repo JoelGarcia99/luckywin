@@ -10,6 +10,7 @@ mod m20251008_195322_create_games_metadata;
 mod m20251009_064229_mix_lotteries;
 mod m20251009_080515_ticket_price_to_game;
 mod m20251009_082241_closed_at_for_games;
+mod m20251009_175344_numbers_datatype_128_bits;
 
 pub struct Migrator;
 
@@ -27,6 +28,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251009_064229_mix_lotteries::Migration),
             Box::new(m20251009_080515_ticket_price_to_game::Migration),
             Box::new(m20251009_082241_closed_at_for_games::Migration),
+            Box::new(m20251009_175344_numbers_datatype_128_bits::Migration),
         ]
     }
 }
