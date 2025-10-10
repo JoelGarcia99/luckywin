@@ -55,21 +55,21 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone> PurchaseLotteryUs
 
         // the number of tickets must be between 1 and 5
         if !(1..=5).contains(&length) {
-            return Err(Rfc7807Problem::simple_bad_request(
+            return Err(Box::new(Rfc7807Problem::simple_bad_request(
                 Some("Error al comprar sus tickets"),
                 Some("Debe comprar entre 1 y 5 tockets"),
                 None,
-            ));
+            )));
         }
 
         // all the tickets must have 5 numbers
         for ticket in &lotteries.tickets {
             if ticket.numbers.len() != 5 {
-                return Err(Rfc7807Problem::simple_bad_request(
+                return Err(Box::new(Rfc7807Problem::simple_bad_request(
                     Some("Error al comprar sus tickets"),
                     Some("Todos los tickets deben tener 5 números"),
                     None,
-                ));
+                )));
             }
         }
 

@@ -18,3 +18,6 @@ utoipa = {version="5.4", features=["uuid", "chrono"]}
 utoipa-swagger-ui = { version = "9.0.2", default-features = false, features = ["axum", "vendored"] }
 tower-http = { version = "0.6", features = ["normalize-path"] }
 async-trait = "0.1"
+argon2 = "0.5"
+jsonwebtoken = "9.3"
+rand = "0.8"

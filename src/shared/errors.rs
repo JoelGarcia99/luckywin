@@ -31,7 +31,7 @@ pub const CANNOT_FIND_MASTER_ROLE: &str = "CANNOT_FIND_MASTER_ROLE";
 /**
 -------------------------------------------------------------------------
 */
-pub type StandardOutput<T> = Result<StandardResponse<T>, Rfc7807Problem>;
+pub type StandardOutput<T> = Result<StandardResponse<T>, Box<Rfc7807Problem>>;
 pub type EmptyStandardResponse = StandardResponse<String>;
 
 #[derive(Serialize, Deserialize, ToSchema)]

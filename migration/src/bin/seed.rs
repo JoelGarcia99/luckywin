@@ -1,3 +1,7 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+    Argon2,
+};
 use sea_orm::{
     ConnectionTrait, Database, DatabaseTransaction, DbBackend, Statement, TransactionTrait, Value,
 };
@@ -50,6 +54,74 @@ async fn upsert_game(
     Ok(new_id)
 }
 
+/// Hashes a password using Argon2 (default configuration)
+fn hash_password(password: &str) -> Result<String, String> {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+
+    argon2
+        .hash_password(password.as_bytes(), &salt)
+        .map(|hash| hash.to_string())
+        .map_err(|e| format!("Failed to hash password: {}", e))
+}
+
+/// Upserts an admin user by email (idempotent - won't create duplicates on multiple runs)
+async fn upsert_admin_user(
+    db: &DatabaseTransaction,
+    first_name: &str,
+    last_name: &str,
+    location: &str,
+    cellphone: &str,
+    email: &str,
+    password: &str,
+    role: &str,
+) -> Result<Uuid, sea_orm::DbErr> {
+    // Try to fetch existing user by email
+    if let Some(row) = db
+        .query_one(Statement::from_sql_and_values(
+            DbBackend::Postgres,
+            "SELECT id FROM users WHERE lower(email) = lower($1) AND deleted_at IS NULL",
+            vec![Value::from(email)],
+        ))
+        .await?
+    {
+        let id: Uuid = row.try_get("", "id")?;
+        println!("  ℹ️  Admin user already exists with email: {}", email);
+        return Ok(id);
+    }
+
+    // Hash the password using Argon2i
+    let password_hash = hash_password(password)
+        .map_err(|e| sea_orm::DbErr::Custom(e))?;
+
+    // Create new user if it doesn't exist
+    let new_id = Uuid::new_v4();
+    let now = chrono::Utc::now();
+
+    db.execute(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        r#"
+        INSERT INTO users (id, first_name, last_name, location, cellphone, email, password, role, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        "#,
+        vec![
+            Value::from(new_id),
+            Value::from(first_name),
+            Value::from(last_name),
+            Value::from(location),
+            Value::from(cellphone),
+            Value::from(email),
+            Value::from(password_hash),
+            Value::from(role),
+            Value::from(now),
+            Value::from(now),
+        ],
+    ))
+    .await?;
+
+    Ok(new_id)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), sea_orm::DbErr> {
     let db_url = env::var("DATABASE_URL")
@@ -58,8 +130,24 @@ async fn main() -> Result<(), sea_orm::DbErr> {
     let db = Database::connect(&db_url).await?;
     let txn = db.begin().await?;
 
+    // ── Seed Admin User ──────────────────────────────────────────────────────
+    println!("👤 Seeding admin user...");
+
+    let admin_id = upsert_admin_user(
+        &txn,
+        "Luckywin",
+        "Administrador",
+        "portoviejo",
+        "xxxxxxxxxx",
+        "dev@devallsas.com",
+        "123Root.",
+        "admin",
+    )
+    .await?;
+    println!("  ✅ Admin user created/found: {}", admin_id);
+
     // ── Seed Games ───────────────────────────────────────────────────────────
-    println!("🎮 Seeding games...");
+    println!("\n🎮 Seeding games...");
 
     let game1_id = upsert_game(
         &txn,
@@ -104,8 +192,13 @@ async fn main() -> Result<(), sea_orm::DbErr> {
     txn.commit().await?;
 
     println!("\n✅ Seed completed successfully!");
+    println!("   - Admin users seeded: 1");
     println!("   - Games seeded: 4");
     println!("   - Running this seeder multiple times will NOT create duplicates");
+    println!("\n📧 Admin credentials:");
+    println!("   Email: dev@devallsas.com");
+    println!("   Cellphone: xxxxxxxxxx");
+    println!("   Password: 123Root.");
 
     Ok(())
 }

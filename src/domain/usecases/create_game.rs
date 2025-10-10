@@ -32,14 +32,14 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
         // getting last active game first to see if we can enable a new one
         match last_active_use_case.execute().await {
             Ok(game) => {
-                return Err(Rfc7807Problem::simple_bad_request(
+                return Err(Box::new(Rfc7807Problem::simple_bad_request(
                     Some("Ya hay un juego activo"),
                     Some(&format!(
                         "Cierre el juego {} para poder crear uno nuevo",
                         game.data.title
                     )),
                     None,
-                ));
+                )));
             }
             Err(e) => {
                 if e.status() != StatusCode::NOT_FOUND {

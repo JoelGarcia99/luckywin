@@ -3,7 +3,7 @@ use std::fs;
 /// This variable is the length of the salts used for hashing over the password
 pub const HASH_SALTS: usize = 10;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SecretsVariables {
     pub jwt_password: String,
     pub jwt_at_exp: String,

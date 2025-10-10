@@ -12,6 +12,7 @@ use crate::{
         inbounds::rest::{
             controllers,
             dtos::{
+                auth::{LoginInputDto, LoginOutputDto, LogoutOutputDto, RefreshTokenInputDto},
                 client::ClientsInputDto,
                 game::CreateGameDto,
                 lottery::{CreateLotteryTicketDto, LotteriesPurchaseDto},
@@ -85,14 +86,8 @@ impl Modify for SecurityAddon {
 #[derive(OpenApi)]
 #[openapi(
     nest(
-        // (path = "/users", api = crate::controllers::users::ApiDoc),
-        // (path = "/auth", api = crate::controllers::session::ApiDoc),
-        // (path = "/locations", api = crate::controllers::locations::ApiDoc),
-        // (path = "/professions", api = crate::controllers::professions::ApiDoc),
-        // (path = "/specialties", api = crate::controllers::specialties::ApiDoc),
-        // (path = "/schedules", api = crate::controllers::scheduler::ApiDoc),
-        // (path = "/appointments", api = crate::controllers::appointments::ApiDoc),
         (path = "/health", api = controllers::health::ApiDoc),
+        (path = "/auth", api = controllers::auth::ApiDoc),
         (path = "/games", api = controllers::game::ApiDoc),
         (path = "/lottery", api = controllers::lottery::ApiDoc),
     ),
@@ -111,14 +106,22 @@ impl Modify for SecurityAddon {
     ),
     modifiers(&SecurityAddon),
     components(schemas(
-        // CreateUserDto,
+        // Auth DTOs
+        LoginInputDto,
+        LoginOutputDto,
+        RefreshTokenInputDto,
+        LogoutOutputDto,
+        // Client DTOs
         ClientsInputDto,
         ClientOutputDto,
+        // Game DTOs
         CreateGameDto,
         GameOutputDto,
+        // Lottery DTOs
         CreateLotteryTicketDto,
         LotteryOutputDto,
         LotteriesPurchaseDto,
+        // Error DTOs
         Rfc7807Problem,
         ValidatorError,
         ValidatorErrorFields,

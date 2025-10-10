@@ -8,12 +8,20 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub id_user: Uuid,
-    #[sea_orm(column_type = "Text")]
-    pub refresh_token: String,
+    #[sea_orm(column_type = "Text", unique)]
+    pub refresh_token_hash: String,
     pub expires_at: DateTimeWithTimeZone,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
     pub deleted_at: Option<DateTimeWithTimeZone>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub device_fingerprint: Option<String>,
+    #[sea_orm(column_type = "custom(\"inet\")", nullable)]
+    pub ip: Option<String>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub user_agent: Option<String>,
+    pub last_used_at: Option<DateTimeWithTimeZone>,
+    pub is_active: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
