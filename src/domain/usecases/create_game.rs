@@ -27,7 +27,7 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
     }
 
     pub async fn execute(&self, game_dto: &CreateGameDto) -> StandardOutput<GameOutputDto> {
-        let last_active_use_case = GetLastActiveGameUseCase::new(self.repo, Arc::clone(&self.db));
+        let last_active_use_case = GetLastActiveGameUseCase::new(self.repo, &*self.db);
 
         // getting last active game first to see if we can enable a new one
         match last_active_use_case.execute().await {
@@ -55,7 +55,7 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
             title: Set(game_dto.title.clone()),
             banner_url: Set(game_dto.banner_url.clone()),
             ticket_price: Set(game_dto.ticket_price),
-            finished_at: Set(game_dto.finished_at.into()),
+            finished_at: Set(game_dto.finished_at.map(|dt| dt.into())),
             closed_at: Set(None),
             created_at: Set(now.into()),
             updated_at: Set(now.into()),

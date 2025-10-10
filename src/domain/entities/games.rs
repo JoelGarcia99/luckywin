@@ -9,7 +9,7 @@ pub struct Model {
     pub id: Uuid,
     pub title: String,
     pub banner_url: Option<String>,
-    pub finished_at: DateTimeWithTimeZone,
+    pub finished_at: Option<DateTimeWithTimeZone>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
     pub deleted_at: Option<DateTimeWithTimeZone>,

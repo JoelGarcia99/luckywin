@@ -35,7 +35,7 @@ pub trait ClientsRepo: Send + Sync + Copy {
     where
         C: ConnectionTrait;
 
-    async fn list_clients<C>(&self, db: &C) -> StandardOutput<Vec<ClientOutputDto>>
+    async fn list_clients<C>(&self, db: &C, page: u64, per_page: u64) -> StandardOutput<Vec<ClientOutputDto>>
     where
         C: ConnectionTrait;
 }

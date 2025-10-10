@@ -138,8 +138,12 @@ for item in "${SYNC_ITEMS[@]}"; do
   # Create parent dir on server
   REMOTE_PARENT="${REMOTE_DIR}/$(dirname "${item}")"
   ${SSH} "mkdir -p '${REMOTE_PARENT}'"
-  # Sync item (file or directory)
-  rsync -az -e "ssh -p ${SSH_PORT}" --delete "${item}" "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/${item%/}"
+  # Sync item (file or directory) - exclude build artifacts and data directories
+  rsync -az -e "ssh -p ${SSH_PORT}" --delete \
+    --exclude='target' \
+    --exclude='luckywin_db_data' \
+    --exclude='licky_win_db_data' \
+    "${item}" "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/${item%/}"
 done
 
 ### SHIP IMAGES
@@ -165,7 +169,7 @@ ${SSH} bash -lc "
   docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' up -d
   echo '==> Restarting luckywin_gateway to load updated routes'
   if docker ps -a --format '{{.Names}}' | grep -q '^luckywin_gateway$'; then
-    docker restart clinix_gateway
+    docker restart luckywin_gateway
   else
     docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' up -d gateway
   fi
@@ -177,7 +181,7 @@ ${SSH} bash -lc "
     export PATH="\$HOME/.cargo/bin:\$PATH"
   fi
   command -v cargo >/dev/null 2>&1 || { echo 'cargo still not found; PATH='"\$PATH"; exit 127; }
-  cd '${REMOTE_DIR}/api'
+  cd '${REMOTE_DIR}'
   make migrate-up
   make seed
 "

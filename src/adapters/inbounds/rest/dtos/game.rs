@@ -21,7 +21,7 @@ pub struct CreateGameDto {
     #[schema(example = 150)]
     pub ticket_price: i32,
 
-    /// Game finish date and time
+    /// Game finish date and time (optional)
     #[schema(example = "2025-12-25T23:59:59Z")]
-    pub finished_at: DateTime<Utc>,
+    pub finished_at: Option<DateTime<Utc>>,
 }

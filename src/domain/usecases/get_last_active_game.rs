@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use sea_orm::ConnectionTrait;
 
 use crate::{
@@ -8,13 +6,13 @@ use crate::{
 };
 
 /// Gets the last active game (where closed_at is NULL and deleted_at is NULL)
-pub struct GetLastActiveGameUseCase<R: GamesRepo, C: ConnectionTrait> {
+pub struct GetLastActiveGameUseCase<'a, R: GamesRepo, C: ConnectionTrait> {
     repo: R,
-    db: Arc<C>,
+    db: &'a C,
 }
 
-impl<R: GamesRepo, C: ConnectionTrait> GetLastActiveGameUseCase<R, C> {
-    pub fn new(repo: R, db: Arc<C>) -> Self {
+impl<'a, R: GamesRepo, C: ConnectionTrait> GetLastActiveGameUseCase<'a ,R, C> {
+    pub fn new(repo: R, db: &'a C) -> Self {
         Self { repo, db }
     }
 

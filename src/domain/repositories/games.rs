@@ -36,4 +36,8 @@ pub trait GamesRepo: Send + Sync + Copy {
     async fn get_last_active<C>(&self, db: &C) -> StandardOutput<GameOutputDto>
     where
         C: ConnectionTrait;
+
+    async fn get_batch_by_ids<C>(&self, db: &C, ids: &Vec<Uuid>) -> StandardOutput<Vec<GameOutputDto>>
+    where
+        C: ConnectionTrait;
 }
