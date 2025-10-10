@@ -1,59 +1,40 @@
 use std::sync::Arc;
 
-use axum::{extract::State, response::IntoResponse, Json};
-use serde_valid::Validate;
+use axum::extract::State;
 use utoipa::OpenApi;
 
 use crate::{
-    adapters::{
-        inbounds::rest::dtos::lottery::LotteriesPurchaseDto,
-        outbound::{
-            db::{clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl},
-            rest::dtos::lottery::LotteryOutputDto,
-        },
-    },
+    adapters::outbound::{db::games::GamesRepoImpl, rest::dtos::game::GameOutputDto},
     config::state::AppState,
-    domain::usecases::purchase_lottery::PurchaseLotteryUseCase,
+    domain::usecases::get_last_active_game::GetLastActiveGameUseCase,
     shared::errors::{Rfc7807Problem, StandardOutput},
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(purchase_lottery))]
+#[openapi(paths(get_last_active_game))]
 pub struct ApiDoc;
 
-/// Purchases lottery tickets
+/// Get the last active game
 ///
-/// Purchases many tickets for a given client
+/// Returns the last active game (where closed_at is NULL and deleted_at is NULL)
 #[utoipa::path(
-    post,
-    path = "/purchase",
-    tags = ["lottery"],
-    request_body = LotteriesPurchaseDto,
+    get,
+    path = "/active",
+    tags = ["games"],
     responses(
-        (status = 201, description = "Lotteries purchased", body = Vec<LotteryOutputDto>),
-        (status = 400, description = "Error purchasing lotteries", body = Rfc7807Problem)
+        (status = 200, description = "Last active game retrieved", body = GameOutputDto),
+        (status = 404, description = "No active game found", body = Rfc7807Problem)
     )
 )]
-pub async fn purchase_lottery(
+pub async fn get_last_active_game(
     State(state): State<Arc<AppState>>,
-    Json(body): Json<LotteriesPurchaseDto>,
-) -> StandardOutput<Vec<LotteryOutputDto>> {
-    body.validate()
-        .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
-
-    // Instantiate the repository implementations
-    let lotteries_repo = LotteriesRepoImpl;
+) -> StandardOutput<GameOutputDto> {
+    // Instantiate the repository implementation
     let games_repo = GamesRepoImpl;
-    let clients_repo = ClientsRepoImpl;
 
-    // Create the use case with the repository implementations
-    let use_case = PurchaseLotteryUseCase::new(
-        lotteries_repo,
-        games_repo,
-        clients_repo,
-        Arc::clone(&state.db),
-    );
+    // Create the use case with the repository implementation
+    let use_case = GetLastActiveGameUseCase::new(games_repo, &*state.db);
 
     // Execute the use case
-    use_case.execute(body).await
+    use_case.execute().await
 }

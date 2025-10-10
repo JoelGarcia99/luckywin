@@ -16,6 +16,15 @@ pub fn process_db_err(err: &DbErr) -> Rfc7807Problem {
         );
     }
 
+    // Check for cellphone unique constraint violation
+    if err_string.contains("idx_users_cellphone_deleted_at") {
+        return Rfc7807Problem::simple_bad_request(
+            Some("Número de celular duplicado"),
+            Some("¡Oops! ¡El número de celular ingresado ya está siendo usado por otra persona!"),
+            Some("CELLPHONE_ALREADY_EXISTS"),
+        );
+    }
+
     if let Some(sql_err) = err.sql_err() {
         tracing::debug!("SQL error: {:?}", sql_err);
         return match sql_err {

@@ -93,10 +93,12 @@ impl Modify for SecurityAddon {
         // (path = "/schedules", api = crate::controllers::scheduler::ApiDoc),
         // (path = "/appointments", api = crate::controllers::appointments::ApiDoc),
         (path = "/health", api = controllers::health::ApiDoc),
-        (path = "/lottery", api = controllers::game::ApiDoc),
+        (path = "/games", api = controllers::game::ApiDoc),
+        (path = "/lottery", api = controllers::lottery::ApiDoc),
     ),
     tags(
         (name = "infra", description = "Infra state"),
+        (name = "games", description = "Games management"),
         (name = "lottery", description = "Lottery associated endpoints"),
         (name = "auth", description = "Authorization & authentication management"),
         (name = "users", description = "Users management"),
