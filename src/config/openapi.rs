@@ -23,7 +23,7 @@ use crate::{
         },
     },
     config::state::AppState,
-    shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields},
+    shared::{errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields}, payloads::CurrentUserDto},
 };
 
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
@@ -90,6 +90,7 @@ impl Modify for SecurityAddon {
         (path = "/auth", api = controllers::auth::ApiDoc),
         (path = "/games", api = controllers::game::ApiDoc),
         (path = "/lottery", api = controllers::lottery::ApiDoc),
+        (path = "/users", api = controllers::user::ApiDoc),
     ),
     tags(
         (name = "infra", description = "Infra state"),
@@ -111,6 +112,7 @@ impl Modify for SecurityAddon {
         LoginOutputDto,
         RefreshTokenInputDto,
         LogoutOutputDto,
+        CurrentUserDto,
         // Client DTOs
         ClientsInputDto,
         ClientOutputDto,

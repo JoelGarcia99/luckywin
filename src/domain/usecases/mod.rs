@@ -6,3 +6,4 @@ pub mod logout;
 pub mod purchase_lottery;
 pub mod refresh_token;
 pub mod upsert_client;
+pub mod get_current_user;
