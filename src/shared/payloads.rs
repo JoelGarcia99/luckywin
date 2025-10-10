@@ -30,16 +30,3 @@ pub struct RefreshTokenPayload {
     /// Expiration time measured in UTC format (Unix timestamp)
     pub exp: i64,
 }
-
-#[derive(Serialize, ToSchema)]
-pub struct CurrentUserDto {
-    pub id: Uuid,
-    pub first_name: String,
-    pub last_name: Option<String>,
-    pub location: Option<String>,
-    pub cellphone: String,
-    pub email: String,
-    pub role: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}

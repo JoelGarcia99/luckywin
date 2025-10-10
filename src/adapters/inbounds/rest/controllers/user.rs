@@ -1,27 +1,34 @@
-
 use std::sync::Arc;
 
-use axum::{extract::State, http::HeaderMap};
+use axum::{Json, extract::State, http::HeaderMap};
 use utoipa::OpenApi;
 
 use crate::{
+    adapters::{
+        inbounds::rest::dtos::user::UpdateUserDto,
+        outbound::{db::users::UsersRepoImpl, rest::dtos::users::CurrentUserDto},
+    },
     config::state::AppState,
+    domain::{
+        enums::roles::Roles,
+        usecases::{
+            get_current_user::GetCurrentUserUseCase, update_current_user::UpdateCurrentUserUseCase,
+        },
+    },
     shared::{
         errors::{Rfc7807Problem, StandardOutput},
-        payloads::{AccessTokenPayload, CurrentUserDto},
+        payloads::AccessTokenPayload,
         utils::jwt::decode_jwt,
     },
-    adapters::outbound::db::users::UsersRepoImpl,
-    domain::usecases::get_current_user::GetCurrentUserUseCase,
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(get_current_user))]
+#[openapi(paths(get_current_user, update_current_user))]
 pub struct ApiDoc;
 
-/// Get the current user in session
+/// Get current user in session
 ///
-/// Get the full object of the curent user in session via access token payload
+/// Get current user in session from JWT payload
 #[utoipa::path(
     get,
     path = "/me",
@@ -57,4 +64,57 @@ pub async fn get_current_user(
     let use_case = GetCurrentUserUseCase::new(users_repo, Arc::clone(&state.db));
 
     use_case.execute(&payload.sub).await
+}
+
+/// Update current user
+///
+/// Update current user if it's an admin
+#[utoipa::path(
+    patch,
+    path = "/me",
+    tags = ["users"],
+    request_body = UpdateUserDto,
+    responses(
+        (status = 200, description = "User updated successfully", body = CurrentUserDto),
+        (status = 400, description = "Invalid data", body = Rfc7807Problem),
+        (status = 401, description = "Unauthorized", body = Rfc7807Problem),
+        (status = 404, description = "User not found", body = Rfc7807Problem)
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn update_current_user(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(dto): Json<UpdateUserDto>,
+) -> StandardOutput<CurrentUserDto> {
+    tracing::debug!("Seeing what's going on {:?}", headers.get("Authorization"));
+    let access_token = headers
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| {
+            Box::new(Rfc7807Problem::unauthorized(
+                Some("Token de acceso requerido"),
+                Some("El header Authorization es requerido"),
+                Some("MISSING_ACCESS_TOKEN"),
+            ))
+        })?;
+
+    tracing::debug!("passed first check");
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
+
+    if payload.role != Roles::Admin.to_string() {
+        return Err(Box::new(Rfc7807Problem::unauthorized(
+            Some("Acceso denegado"),
+            Some("No tienes permisos para realizar esta accion"),
+            Some("UNAUTHORIZED"),
+        )));
+    }
+
+    let users_repo = UsersRepoImpl;
+    let use_case = UpdateCurrentUserUseCase::new(users_repo, Arc::clone(&state.db));
+
+    use_case.execute(&payload.sub, &dto).await
 }

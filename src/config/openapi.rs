@@ -16,14 +16,15 @@ use crate::{
                 client::ClientsInputDto,
                 game::CreateGameDto,
                 lottery::{CreateLotteryTicketDto, LotteriesPurchaseDto},
+                user::UpdateUserDto,
             },
         },
         outbound::rest::dtos::{
-            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto,
+            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto, users::CurrentUserDto,
         },
     },
     config::state::AppState,
-    shared::{errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields}, payloads::CurrentUserDto},
+    shared::errors::{Rfc7807Problem, ValidatorError, ValidatorErrorFields},
 };
 
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
@@ -113,6 +114,7 @@ impl Modify for SecurityAddon {
         RefreshTokenInputDto,
         LogoutOutputDto,
         CurrentUserDto,
+        UpdateUserDto,
         // Client DTOs
         ClientsInputDto,
         ClientOutputDto,

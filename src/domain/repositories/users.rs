@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::ConnectionTrait;
+use sea_orm::{ConnectionTrait, DbErr};
 use uuid::Uuid;
 
 use crate::{
@@ -36,6 +36,15 @@ pub trait UsersRepo: Send + Sync + Copy {
         id: &Uuid,
         db: &C,
     ) -> StandardOutput<Option<users::Model>>
+    where
+        C: ConnectionTrait;
+
+    /// .
+    async fn update_user<C>(
+        &self,
+        user: &users::ActiveModel,
+        db: &C,
+    ) -> StandardOutput<users::Model>
     where
         C: ConnectionTrait;
 }

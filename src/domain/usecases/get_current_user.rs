@@ -4,12 +4,9 @@ use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::db::users::UsersRepoImpl,
+    adapters::outbound::{db::users::UsersRepoImpl, rest::dtos::users::CurrentUserDto},
     domain::repositories::users::UsersRepo,
-    shared::{
-        errors::{Rfc7807Problem, StandardOutput, StandardResponse},
-        payloads::CurrentUserDto,
-    },
+    shared::errors::{Rfc7807Problem, StandardOutput, StandardResponse},
 };
 
 pub struct GetCurrentUserUseCase {

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
 use crate::{
@@ -16,11 +16,7 @@ pub struct UsersRepoImpl;
 
 #[async_trait]
 impl UsersRepo for UsersRepoImpl {
-    async fn find_by_email<C>(
-        &self,
-        email: &str,
-        db: &C,
-    ) -> StandardOutput<Option<users::Model>>
+    async fn find_by_email<C>(&self, email: &str, db: &C) -> StandardOutput<Option<users::Model>>
     where
         C: ConnectionTrait,
     {
@@ -52,11 +48,7 @@ impl UsersRepo for UsersRepoImpl {
         Ok(StandardResponse::simple(user, None))
     }
 
-    async fn find_by_id<C>(
-        &self,
-        id: &Uuid,
-        db: &C,
-    ) -> StandardOutput<Option<users::Model>>
+    async fn find_by_id<C>(&self, id: &Uuid, db: &C) -> StandardOutput<Option<users::Model>>
     where
         C: ConnectionTrait,
     {
@@ -67,5 +59,20 @@ impl UsersRepo for UsersRepoImpl {
             .map_err(|e| process_db_err(&e))?;
 
         Ok(StandardResponse::simple(user, None))
+    }
+
+    async fn update_user<C>(
+        &self,
+        user: &users::ActiveModel,
+        db: &C,
+    ) -> StandardOutput<users::Model>
+    where
+        C: ConnectionTrait,
+    {
+        user.clone()
+            .update(db)
+            .await
+            .map_err(|e| process_db_err(&e))
+            .map(|u| StandardResponse::simple(u, None))
     }
 }

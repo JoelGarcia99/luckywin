@@ -6,7 +6,7 @@ use crate::{
         game::get_last_active_game,
         health::check_health,
         lottery::purchase_lottery,
-        user::get_current_user,
+        user::{get_current_user, update_current_user},
     },
     config::state::AppState,
 };
@@ -42,5 +42,8 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
             axum::routing::get(get_last_active_game),
         )
         // User routes
-        .route(GET_CURRENT_USER, axum::routing::get(get_current_user))
+        .route(
+            GET_CURRENT_USER,
+            axum::routing::get(get_current_user).patch(update_current_user),
+        )
 }

@@ -11,7 +11,7 @@ pub struct LoginInputDto {
     pub email: String,
 
     /// User password
-    #[schema(example = "MySecurePass123!")]
+    #[schema(example = "123Root.")]
     #[validate(min_length = 8)]
     pub password: String,
 }
