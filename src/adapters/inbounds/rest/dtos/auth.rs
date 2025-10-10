@@ -4,11 +4,11 @@ use utoipa::ToSchema;
 
 #[derive(Deserialize, Validate, ToSchema)]
 pub struct LoginInputDto {
-    /// Cellphone number used for login
-    #[schema(example = "1234567890")]
-    #[validate(min_length = 10)]
-    #[validate(max_length = 15)]
-    pub cellphone: String,
+    /// Email address used for login
+    #[schema(example = "dev@devallsas.com")]
+    #[validate(min_length = 5)]
+    #[validate(max_length = 255)]
+    pub email: String,
 
     /// User password
     #[schema(example = "MySecurePass123!")]

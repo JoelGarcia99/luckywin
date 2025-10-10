@@ -9,6 +9,16 @@ use crate::{
 
 #[async_trait]
 pub trait UsersRepo: Send + Sync + Copy {
+    /// Finds a user by email address
+    /// Returns None if user is not found or has been soft-deleted
+    async fn find_by_email<C>(
+        &self,
+        email: &str,
+        db: &C,
+    ) -> StandardOutput<Option<users::Model>>
+    where
+        C: ConnectionTrait;
+
     /// Finds a user by cellphone number
     /// Returns None if user is not found or has been soft-deleted
     async fn find_by_cellphone<C>(

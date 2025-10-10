@@ -12,9 +12,12 @@ use crate::{
         repositories::{sessions::SessionsRepo, users::UsersRepo},
     },
     shared::{
-        errors::{Rfc7807Problem, StandardOutput, StandardResponse, INVALID_CREDENTIALS},
+        errors::{INVALID_CREDENTIALS, Rfc7807Problem, StandardOutput, StandardResponse},
         payloads::{AccessTokenPayload, RefreshTokenPayload},
-        utils::{jwt::encode_jwt, security::{hash_password, verify_password}},
+        utils::{
+            jwt::encode_jwt,
+            security::{hash_password, verify_password},
+        },
     },
 };
 
@@ -25,7 +28,9 @@ pub struct LoginUseCase<UR: UsersRepo, SR: SessionsRepo, C: ConnectionTrait + Tr
     secrets: SecretsVariables,
 }
 
-impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + TransactionTrait> LoginUseCase<UR, SR, C> {
+impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + TransactionTrait>
+    LoginUseCase<UR, SR, C>
+{
     pub fn new(users_repo: UR, sessions_repo: SR, db: Arc<C>, secrets: SecretsVariables) -> Self {
         Self {
             users_repo,
@@ -42,16 +47,16 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
         ip: Option<&str>,
         user_agent: Option<&str>,
     ) -> StandardOutput<LoginOutputDto> {
-        // Find user by cellphone
+        // Find user by email
         let user = self
             .users_repo
-            .find_by_cellphone(&dto.cellphone, &*self.db)
+            .find_by_email(&dto.email, &*self.db)
             .await?
             .data
             .ok_or_else(|| {
                 Box::new(Rfc7807Problem::simple_bad_request(
                     Some("Credenciales incorrectas"),
-                    Some("Verifique su número de celular y contraseña"),
+                    Some("Verifique su email y contraseña"),
                     Some(INVALID_CREDENTIALS),
                 ))
             })?;
@@ -70,7 +75,7 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
         if !passwords_match {
             return Err(Box::new(Rfc7807Problem::simple_bad_request(
                 Some("Credenciales incorrectas"),
-                Some("Verifique su número de celular y contraseña"),
+                Some("Verifique su email y contraseña"),
                 Some(INVALID_CREDENTIALS),
             )));
         }
@@ -100,18 +105,14 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
         };
 
         // Start transaction
-        let txn = self.db
-            .as_ref()
-            .begin()
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to start transaction: {}", e);
-                Box::new(Rfc7807Problem::server_error(
-                    Some("Error al iniciar sesión"),
-                    Some("No se pudo procesar la solicitud"),
-                    None,
-                ))
-            })?;
+        let txn = self.db.as_ref().begin().await.map_err(|e| {
+            tracing::error!("Failed to start transaction: {}", e);
+            Box::new(Rfc7807Problem::server_error(
+                Some("Error al iniciar sesión"),
+                Some("No se pudo procesar la solicitud"),
+                None,
+            ))
+        })?;
 
         // Soft delete old sessions for this user and device
         self.sessions_repo
@@ -125,7 +126,10 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
         let hashed_refresh_token = hash_password(&refresh_token)?;
 
         // Calculate expires_at
-        let expires_at_utc = chrono::Utc.timestamp_opt(rt_claim.exp, 0).single().expect("Invalid timestamp");
+        let expires_at_utc = chrono::Utc
+            .timestamp_opt(rt_claim.exp, 0)
+            .single()
+            .expect("Invalid timestamp");
         let expires_at = expires_at_utc.into();
 
         // Create session
@@ -140,6 +144,8 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
             expires_at: Set(expires_at),
             is_active: Set(true),
             last_used_at: Set(Some(Utc::now().into())),
+            created_at: Set(Utc::now().into()),
+            updated_at: Set(Utc::now().into()),
             ..Default::default()
         };
 

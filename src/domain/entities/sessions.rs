@@ -16,7 +16,7 @@ pub struct Model {
     pub deleted_at: Option<DateTimeWithTimeZone>,
     #[sea_orm(column_type = "Text", nullable)]
     pub device_fingerprint: Option<String>,
-    #[sea_orm(column_type = "custom(\"inet\")", nullable)]
+    #[sea_orm(column_type = "Text", nullable)]
     pub ip: Option<String>,
     #[sea_orm(column_type = "Text", nullable)]
     pub user_agent: Option<String>,

@@ -16,6 +16,24 @@ pub struct UsersRepoImpl;
 
 #[async_trait]
 impl UsersRepo for UsersRepoImpl {
+    async fn find_by_email<C>(
+        &self,
+        email: &str,
+        db: &C,
+    ) -> StandardOutput<Option<users::Model>>
+    where
+        C: ConnectionTrait,
+    {
+        let user = Entity::find()
+            .filter(Column::Email.eq(email))
+            .filter(Column::DeletedAt.is_null())
+            .one(db)
+            .await
+            .map_err(|e| process_db_err(&e))?;
+
+        Ok(StandardResponse::simple(user, None))
+    }
+
     async fn find_by_cellphone<C>(
         &self,
         cellphone: &str,

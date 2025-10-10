@@ -26,16 +26,12 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
-        // Add ip column (INET type for PostgreSQL)
+        // Add ip column (TEXT type)
         manager
             .alter_table(
                 Table::alter()
                     .table(Sessions::Table)
-                    .add_column(
-                        ColumnDef::new(Sessions::Ip)
-                            .custom(sea_query::Alias::new("INET"))
-                            .null(),
-                    )
+                    .add_column(ColumnDef::new(Sessions::Ip).text().null())
                     .to_owned(),
             )
             .await?;

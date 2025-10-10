@@ -193,6 +193,8 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
             expires_at: Set(expires_at),
             is_active: Set(true),
             last_used_at: Set(Some(Utc::now().into())),
+            created_at: Set(Utc::now().into()),
+            updated_at: Set(Utc::now().into()),
             ..Default::default()
         };
 
