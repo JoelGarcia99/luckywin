@@ -26,7 +26,7 @@ use crate::{
 #[openapi(paths(login, refresh_token, logout))]
 pub struct ApiDoc;
 
-/// Login endpoint
+/// @admin Login endpoint
 ///
 /// Authenticates a user with cellphone and password, returns access and refresh tokens
 #[utoipa::path(
@@ -81,7 +81,7 @@ pub async fn login(
         .await
 }
 
-/// Refresh token endpoint
+/// @admin Refresh token endpoint
 ///
 /// Uses a valid refresh token to generate new access and refresh tokens (token rotation)
 #[utoipa::path(
@@ -157,7 +157,7 @@ pub async fn refresh_token(
         .await
 }
 
-/// Logout endpoint
+/// @admin Logout endpoint
 ///
 /// Invalidates the current session for the authenticated user
 #[utoipa::path(

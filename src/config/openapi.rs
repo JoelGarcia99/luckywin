@@ -52,34 +52,68 @@ async fn build_scalar_html() -> Html<&'static str> {
 
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 <script>
-    // Intercept fetch to auto-save login tokens
+    // Helper to update auth header input field
+    function updateAuthTokenUI(token) {
+      // Try to find and update the bearer token input field
+      setTimeout(() => {
+        const authInput = document.querySelector('input[placeholder*="Bearer"], input[type="password"]');
+        if (authInput) {
+          authInput.value = token;
+          authInput.dispatchEvent(new Event('input', { bubbles: true }));
+          authInput.dispatchEvent(new Event('change', { bubbles: true }));
+          console.log('✅ Token UI updated!');
+        }
+      }, 500);
+    }
+
+    // Unified fetch interceptor for auth injection and token extraction
     const originalFetch = window.fetch;
     window.fetch = async function(...args) {
+      // BEFORE REQUEST: Auto-inject auth token
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        const [url, options = {}] = args;
+        const requestUrl = typeof url === 'string' ? url : url.url;
+
+        if (requestUrl.includes('/api/v1/') && !requestUrl.includes('/auth/login')) {
+          options.headers = options.headers || {};
+          if (!options.headers['Authorization']) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+          }
+          args[1] = options;
+        }
+      }
+
+      // MAKE REQUEST
       const response = await originalFetch(...args);
 
-      // Clone the response so we can read it without consuming it
+      // AFTER REQUEST: Extract token from login response
       const clonedResponse = response.clone();
-
       try {
         const url = typeof args[0] === 'string' ? args[0] : args[0].url;
 
-        // Check if this is a login endpoint
         if (url.includes('/auth/login') && response.ok) {
           const data = await clonedResponse.json();
 
           if (data.data?.access_token) {
-            localStorage.setItem('access_token', data.data.access_token);
+            const newToken = data.data.access_token;
+            localStorage.setItem('access_token', newToken);
             localStorage.setItem('refresh_token', data.data.refresh_token);
             console.log('✅ Token auto-saved!');
 
-            // Show a notification
+            // Try to update the UI directly
+            updateAuthTokenUI(newToken);
+
+            // Show a non-intrusive notification
             const notification = document.createElement('div');
-            notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:16px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;font-family:system-ui;';
-            notification.textContent = 'Token saved! Reloading...';
+            notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:12px 20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;font-family:system-ui;font-size:14px;animation:slideIn 0.3s ease-out;';
+            notification.innerHTML = '✓ Token saved and applied!';
             document.body.appendChild(notification);
 
-            // Reload after a short delay
-            setTimeout(() => window.location.reload(), 1500);
+            setTimeout(() => {
+              notification.style.animation = 'slideOut 0.3s ease-out';
+              setTimeout(() => notification.remove(), 300);
+            }, 3000);
           }
         }
       } catch (e) {
@@ -88,6 +122,20 @@ async fn build_scalar_html() -> Html<&'static str> {
 
       return response;
     };
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
 
     // Mount Scalar with auth configuration
     const configuration = {
@@ -105,7 +153,7 @@ async fn build_scalar_html() -> Html<&'static str> {
 
     Scalar.createApiReference('#app', configuration);
 
-    // 4) Debug: surface errors
+    // Debug: surface errors
     window.addEventListener('unhandledrejection', e => console.error('Promise error:', e.reason));
   </script>
 </body>

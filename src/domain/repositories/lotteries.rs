@@ -26,4 +26,14 @@ pub trait LotteriesRepo: Send + Sync {
     ) -> StandardOutput<Vec<LotteryOutputDto>>
     where
         C: ConnectionTrait;
+
+    /// Updates the status of a lottery
+    async fn update_status<C>(
+        &self,
+        lottery_id: Uuid,
+        status: String,
+        db: &C,
+    ) -> StandardOutput<LotteryOutputDto>
+    where
+        C: ConnectionTrait;
 }

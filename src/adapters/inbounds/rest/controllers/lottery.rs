@@ -1,24 +1,31 @@
 use std::sync::Arc;
 
-use axum::{extract::State, Json};
+use axum::{extract::{Query, State}, http::HeaderMap, Json};
 use serde_valid::Validate;
 use utoipa::OpenApi;
 
 use crate::{
     adapters::{
-        inbounds::rest::dtos::lottery::LotteriesPurchaseDto,
+        inbounds::rest::dtos::lottery::{LotteriesPurchaseDto, MarkLotteryAsPaidQueryParams},
         outbound::{
             db::{clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl},
             rest::dtos::lottery::LotteryOutputDto,
         },
     },
     config::state::AppState,
-    domain::usecases::purchase_lottery::PurchaseLotteryUseCase,
-    shared::errors::{Rfc7807Problem, StandardOutput},
+    domain::{
+        enums::roles::Roles,
+        usecases::{mark_lottery_as_paid::MarkLotteryAsPaidUseCase, purchase_lottery::PurchaseLotteryUseCase},
+    },
+    shared::{
+        errors::{Rfc7807Problem, StandardOutput},
+        payloads::AccessTokenPayload,
+        utils::jwt::decode_jwt,
+    },
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(purchase_lottery))]
+#[openapi(paths(purchase_lottery, mark_lottery_as_paid))]
 pub struct ApiDoc;
 
 /// Purchases lottery tickets
@@ -56,4 +63,59 @@ pub async fn purchase_lottery(
 
     // Execute the use case
     use_case.execute(body).await
+}
+
+/// @admin Mark lottery as paid
+///
+/// Marks a lottery ticket's status from pending to paid (Admin only)
+#[utoipa::path(
+    post,
+    path = "/mark-as-paid",
+    tags = ["lottery"],
+    params(MarkLotteryAsPaidQueryParams),
+    responses(
+        (status = 200, description = "Lottery marked as paid successfully", body = LotteryOutputDto),
+        (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem),
+        (status = 404, description = "Lottery not found", body = Rfc7807Problem)
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn mark_lottery_as_paid(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Query(params): Query<MarkLotteryAsPaidQueryParams>,
+) -> StandardOutput<LotteryOutputDto> {
+    // Extract and validate access token
+    let access_token = headers
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| {
+            Box::new(Rfc7807Problem::unauthorized(
+                Some("Token de acceso requerido"),
+                Some("El header Authorization es requerido"),
+                Some("MISSING_ACCESS_TOKEN"),
+            ))
+        })?;
+
+    // Decode JWT and verify admin role
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
+
+    if payload.role != Roles::Admin.to_string() {
+        return Err(Box::new(Rfc7807Problem::unauthorized(
+            Some("Acceso denegado"),
+            Some("Solo los administradores pueden marcar loterías como pagadas"),
+            Some("ADMIN_ACCESS_REQUIRED"),
+        )));
+    }
+
+    // Instantiate repository
+    let lotteries_repo = LotteriesRepoImpl;
+
+    // Create and execute use case
+    let use_case = MarkLotteryAsPaidUseCase::new(lotteries_repo, Arc::clone(&state.db));
+
+    use_case.execute(params.lottery_id).await
 }

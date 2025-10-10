@@ -5,7 +5,7 @@ use crate::{
         auth::{login, logout, refresh_token},
         game::get_last_active_game,
         health::check_health,
-        lottery::purchase_lottery,
+        lottery::{mark_lottery_as_paid, purchase_lottery},
         user::{get_current_user, update_current_user},
     },
     config::state::AppState,
@@ -20,6 +20,7 @@ pub const LOGOUT: &str = "/auth/logout";
 
 // lottery
 pub const PURCHASE_LOTTERY: &str = "/lottery/purchase";
+pub const MARK_LOTTERY_AS_PAID: &str = "/lottery/mark-as-paid";
 
 // games
 pub const GET_LAST_ACTIVE_GAME: &str = "/games/active";
@@ -36,6 +37,10 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
         .route(LOGOUT, axum::routing::post(logout))
         // Lottery routes
         .route(PURCHASE_LOTTERY, axum::routing::post(purchase_lottery))
+        .route(
+            MARK_LOTTERY_AS_PAID,
+            axum::routing::post(mark_lottery_as_paid),
+        )
         // Game routes
         .route(
             GET_LAST_ACTIVE_GAME,

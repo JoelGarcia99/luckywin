@@ -26,7 +26,7 @@ use crate::{
 #[openapi(paths(get_current_user, update_current_user))]
 pub struct ApiDoc;
 
-/// Get current user in session
+/// @admin Get current user in session
 ///
 /// Get current user in session from JWT payload
 #[utoipa::path(
@@ -58,7 +58,7 @@ pub async fn get_current_user(
             ))
         })?;
 
-    let payload = decode_jwt::<AccessTokenPayload>(access_token, &*state.secrets, false)?;
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
 
     let users_repo = UsersRepoImpl;
     let use_case = GetCurrentUserUseCase::new(users_repo, Arc::clone(&state.db));
@@ -66,7 +66,7 @@ pub async fn get_current_user(
     use_case.execute(&payload.sub).await
 }
 
-/// Update current user
+/// @admin Update current user
 ///
 /// Update current user if it's an admin
 #[utoipa::path(

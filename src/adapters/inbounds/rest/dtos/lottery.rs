@@ -1,6 +1,7 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 use serde_valid::Validate;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
+use uuid::Uuid;
 
 #[derive(Debug, Validate, Deserialize, ToSchema, Default)]
 pub struct LotteriesPurchaseDto {
@@ -23,4 +24,10 @@ pub struct LotteriesPurchaseDto {
 #[derive(Debug, Deserialize, ToSchema, Default)]
 pub struct CreateLotteryTicketDto {
     pub numbers: Vec<u8>,
+}
+
+#[derive(Debug, Deserialize, IntoParams)]
+pub struct MarkLotteryAsPaidQueryParams {
+    /// ID of the lottery ticket to mark as paid
+    pub lottery_id: Uuid,
 }

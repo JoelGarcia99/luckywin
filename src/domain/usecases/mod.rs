@@ -1,10 +1,11 @@
 pub mod create_game;
 pub mod get_batch_by_ids;
+pub mod get_current_user;
 pub mod get_last_active_game;
 pub mod login;
 pub mod logout;
+pub mod mark_lottery_as_paid;
 pub mod purchase_lottery;
 pub mod refresh_token;
-pub mod upsert_client;
-pub mod get_current_user;
 pub mod update_current_user;
+pub mod upsert_client;

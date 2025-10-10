@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::Router;
-use tower_http::normalize_path::NormalizePathLayer;
+use tower_http::{cors::CorsLayer, normalize_path::NormalizePathLayer};
 
 use crate::config::{db::connect_db, tracing::build_tracing};
 
@@ -31,7 +31,8 @@ async fn main() {
             config::routes::build_routes_v1().merge(config::openapi::build_docs()),
         )
         .with_state(Arc::clone(&state))
-        .layer(NormalizePathLayer::trim_trailing_slash());
+        .layer(NormalizePathLayer::trim_trailing_slash())
+        .layer(CorsLayer::permissive());
 
     // listening on target port
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();

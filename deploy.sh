@@ -140,9 +140,11 @@ for item in "${SYNC_ITEMS[@]}"; do
   ${SSH} "mkdir -p '${REMOTE_PARENT}'"
   # Sync item (file or directory) - exclude build artifacts and data directories
   rsync -az -e "ssh -p ${SSH_PORT}" --delete \
-    --exclude='target' \
-    --exclude='luckywin_db_data' \
-    --exclude='licky_win_db_data' \
+    --exclude='target/' \
+    --exclude='*/target/' \
+    --exclude='**/target/' \
+    --exclude='luckywin_db_data/' \
+    --exclude='licky_win_db_data/' \
     "${item}" "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/${item%/}"
 done
 
