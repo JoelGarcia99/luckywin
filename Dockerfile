@@ -23,13 +23,16 @@ RUN cargo install cargo-watch
 CMD ["cargo", "watch", "-x", "run"]
 
 # ---------------------------
-# Production stage
+# Production stage (build)
 # ---------------------------
-FROM base AS prod 
+FROM base AS builder
 RUN cargo build --release
 
-FROM alpine:3.22.1 AS runtime
+# ---------------------------
+# Production runtime stage
+# ---------------------------
+FROM alpine:3.22.1 AS prod
 WORKDIR /app
-COPY --from=prod /app/target/release/luckywin .
+COPY --from=builder /app/target/release/luckywin .
 
 CMD ["./luckywin"]

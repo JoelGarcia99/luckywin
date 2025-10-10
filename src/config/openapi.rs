@@ -52,12 +52,58 @@ async fn build_scalar_html() -> Html<&'static str> {
 
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 <script>
-    // 3) Mount Scalar AFTER the script is loaded and #app exists.
-    // Use the KrakenD path that returns 200 in your browser.
-    Scalar.createApiReference('#app', {
+    // Intercept fetch to auto-save login tokens
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const response = await originalFetch(...args);
+
+      // Clone the response so we can read it without consuming it
+      const clonedResponse = response.clone();
+
+      try {
+        const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+
+        // Check if this is a login endpoint
+        if (url.includes('/auth/login') && response.ok) {
+          const data = await clonedResponse.json();
+
+          if (data.data?.access_token) {
+            localStorage.setItem('access_token', data.data.access_token);
+            localStorage.setItem('refresh_token', data.data.refresh_token);
+            console.log('✅ Token auto-saved!');
+
+            // Show a notification
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:16px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;font-family:system-ui;';
+            notification.textContent = 'Token saved! Reloading...';
+            document.body.appendChild(notification);
+
+            // Reload after a short delay
+            setTimeout(() => window.location.reload(), 1500);
+          }
+        }
+      } catch (e) {
+        // Ignore errors (response might not be JSON)
+      }
+
+      return response;
+    };
+
+    // Mount Scalar with auth configuration
+    const configuration = {
       url: '/api/v1/api-docs/openapi.json',
-      layout: 'modern'
-    });
+      layout: 'modern',
+      authentication: {
+        preferredSecurityScheme: 'bearer_auth',
+        http: {
+          bearer: {
+            token: localStorage.getItem('access_token') || ''
+          }
+        }
+      }
+    };
+
+    Scalar.createApiReference('#app', configuration);
 
     // 4) Debug: surface errors
     window.addEventListener('unhandledrejection', e => console.error('Promise error:', e.reason));

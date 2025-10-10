@@ -154,24 +154,27 @@ ${SCP} "${TAR_FILE}" "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/"
 echo "==> Create compose override on server"
 ${SSH} "cat > '${OVERRIDE_REMOTE}' <<'YAML'
 services:
-  api:
+  api-prod:
     image: ${IMG_TAG_API}
     build: null
+    environment:
+      RUST_LOG: info
 YAML
 "
 
 ### DEPLOY
 echo "==> Load images + compose up"
-${SSH} bash -lc "
+${SSH} "bash -lc \"
   set -euo pipefail
   cd '${REMOTE_DIR}'
   docker load -i '$(basename "${TAR_FILE}")'
-  docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' up -d
-  echo '==> Restarting luckywin_gateway to load updated routes'
+  docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' --profile prod up -d
+  echo '==> Checking for gateway service'
   if docker ps -a --format '{{.Names}}' | grep -q '^luckywin_gateway$'; then
+    echo '==> Restarting luckywin_gateway to load updated routes'
     docker restart luckywin_gateway
   else
-    docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' up -d gateway
+    echo '==> No gateway service found, skipping gateway restart'
   fi
   echo '==> Running database migrations and seed'
   # Ensure Rust/Cargo available in non-interactive shell
@@ -184,7 +187,7 @@ ${SSH} bash -lc "
   cd '${REMOTE_DIR}'
   make migrate-up
   make seed
-"
+\""
 
 ### CLEAN
 echo "==> Clean local tar"

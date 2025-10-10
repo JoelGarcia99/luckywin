@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: dev           # use dev stage for dev profile
+      target: dev  # use dev stage for dev profile
     ports:
       - "8082:8080"
     profiles:
@@ -14,7 +14,7 @@ services:
       luckywin:
         ipv4_address: 172.37.0.10
     volumes:
-      - .:/app              # live-mount code for hot-reload
+      - .:/app  # live-mount code for hot-reload
     environment:
       RUST_LOG: debug
     command: cargo watch -x run
@@ -31,6 +31,35 @@ services:
       - root_password
       - root_social_reason
       - support_email
+  api-prod:
+    container_name: luckywin_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - "8082:8080"
+    profiles:
+      - prod
+    depends_on:
+      - authdb
+    networks:
+      luckywin:
+        ipv4_address: 172.37.0.10
+    secrets:
+      - environment
+      - dsn
+      - jwt_at_exp
+      - jwt_aud
+      - jwt_kid
+      - jwt_password
+      - jwt_rt_exp
+      - root_dni
+      - root_email
+      - root_password
+      - root_social_reason
+      - support_email
+
   authdb:
     image: postgres:16.2-alpine
     container_name: luckywin_authdb
@@ -57,15 +86,15 @@ volumes:
   api_deps:
 
 secrets:
-  environment:         { file: ./secrets/environment.txt }
-  dsn:                 { file: ./secrets/dsn.txt }
-  jwt_at_exp:          { file: ./secrets/jwt_at_exp.txt }
-  jwt_aud:             { file: ./secrets/jwt_aud.txt }
-  jwt_kid:             { file: ./secrets/jwt_kid.txt }
-  jwt_password:        { file: ./secrets/jwt_password.txt }
-  jwt_rt_exp:          { file: ./secrets/jwt_rt_exp.txt }
-  root_dni:            { file: ./secrets/root_dni.txt }
-  root_email:          { file: ./secrets/root_email.txt }
-  root_password:       { file: ./secrets/root_password.txt }
-  root_social_reason:  { file: ./secrets/root_social_reason.txt }
-  support_email:       { file: ./secrets/support_email.txt }
+  environment:        { file: ./secrets/environment.txt }
+  dsn:                { file: ./secrets/dsn.txt }
+  jwt_at_exp:         { file: ./secrets/jwt_at_exp.txt }
+  jwt_aud:            { file: ./secrets/jwt_aud.txt }
+  jwt_kid:            { file: ./secrets/jwt_kid.txt }
+  jwt_password:       { file: ./secrets/jwt_password.txt }
+  jwt_rt_exp:         { file: ./secrets/jwt_rt_exp.txt }
+  root_dni:           { file: ./secrets/root_dni.txt }
+  root_email:         { file: ./secrets/root_email.txt }
+  root_password:      { file: ./secrets/root_password.txt }
+  root_social_reason: { file: ./secrets/root_social_reason.txt }
+  support_email:      { file: ./secrets/support_email.txt }
