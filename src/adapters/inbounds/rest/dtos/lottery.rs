@@ -31,3 +31,16 @@ pub struct MarkLotteryAsPaidQueryParams {
     /// ID of the lottery ticket to mark as paid
     pub lottery_id: Uuid,
 }
+
+#[derive(Debug, Deserialize, IntoParams)]
+pub struct GetLotteriesByGameQueryParams {
+    /// Page number (starts at 0)
+    #[serde(default)]
+    pub page: Option<u64>,
+    /// Number of records per page (default: 20)
+    #[serde(default)]
+    pub per_page: Option<u64>,
+    /// Filter by serial number (leading zeros will be removed)
+    #[serde(default)]
+    pub serial: Option<String>,
+}

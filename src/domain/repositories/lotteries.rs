@@ -36,4 +36,16 @@ pub trait LotteriesRepo: Send + Sync {
     ) -> StandardOutput<LotteryOutputDto>
     where
         C: ConnectionTrait;
+
+    /// Gets paginated lotteries by game ID with optional serial filter
+    async fn get_by_game_id_paginated<C>(
+        &self,
+        game_id: Uuid,
+        page: u64,
+        per_page: u64,
+        serial_filter: Option<i64>,
+        db: &C,
+    ) -> StandardOutput<Vec<LotteryOutputDto>>
+    where
+        C: ConnectionTrait;
 }
