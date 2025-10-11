@@ -6,8 +6,14 @@ use utoipa::ToSchema;
 #[derive(Debug, Validate, Deserialize, ToSchema)]
 pub struct CreateGameDto {
     /// Game title (must be between 10 and 255 characters)
-    #[validate(min_length = 10, message = "El título debe tener al menos 10 caracteres")]
-    #[validate(max_length = 255, message = "El título debe tener menos de 255 caracteres")]
+    #[validate(
+        min_length = 10,
+        message = "El título debe tener al menos 10 caracteres"
+    )]
+    #[validate(
+        max_length = 255,
+        message = "El título debe tener menos de 255 caracteres"
+    )]
     #[schema(example = "Lotería Navideña 2025")]
     pub title: String,
 
@@ -16,10 +22,25 @@ pub struct CreateGameDto {
     pub banner_url: Option<String>,
 
     /// Ticket price in cents (max 10000 = $100 USD)
-    #[validate(maximum = 10000, message = "El precio del ticket no puede superar los 10000 centavos (100 USD)")]
+    #[validate(
+        maximum = 10000,
+        message = "El precio del ticket no puede superar los 10000 centavos (100 USD)"
+    )]
     #[validate(minimum = 1, message = "El precio del ticket debe ser mayor a 0")]
     #[schema(example = 150)]
     pub ticket_price: i32,
+
+    /// Maximum number of plays per lottery (optional)
+    #[schema(example = 10)]
+    #[validate(
+        minimum = 1,
+        message = "El número máximo de jugadas por lote debe ser mayor a 0"
+    )]
+    #[validate(
+        maximum = 1000,
+        message = "El número máximo de jugadas por lote debe ser menor a 20"
+    )]
+    pub max_tickets_per_lottery: Option<i32>,
 
     /// Game finish date and time (optional)
     #[schema(example = "2025-12-25T23:59:59Z")]

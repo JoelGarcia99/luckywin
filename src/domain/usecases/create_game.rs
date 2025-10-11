@@ -58,6 +58,7 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
             created_at: Set(now.into()),
             updated_at: Set(now.into()),
             deleted_at: Set(None),
+            max_tickets_per_lottery: Set(game_dto.max_tickets_per_lottery),
             ..Default::default()
         };
 
