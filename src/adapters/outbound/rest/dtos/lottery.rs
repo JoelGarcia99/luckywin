@@ -13,12 +13,16 @@ pub struct LotteryOutputDto {
     /// Purchased numbers for lottery. Constrained to 5 numbers
     pub numbers: Vec<u8>,
     pub created_at: chrono::DateTime<chrono::Utc>,
+    pub total_paid: i32,
+    pub status: String, // TODO: use enum
 }
 
 impl From<lotteries::Model> for LotteryOutputDto {
     fn from(value: lotteries::Model) -> Self {
         Self {
             client_name: value.client_name,
+            total_paid: value.total_paid,
+            status: value.status,
             client_email: value.email,
             client_cellphone: value.cellphone,
             location: value.location,
