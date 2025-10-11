@@ -141,7 +141,9 @@ pub async fn mark_lottery_as_paid(
     tags = ["lottery"],
     params(
         ("game_id" = Uuid, Path, description = "ID of the game to fetch lottery tickets for"),
-        GetLotteriesByGameQueryParams
+        ("serial" = Option<String>, Query, description = "Filter by serial"),
+        ("page" = Option<u32>, Query, description = "Page number"),
+        ("page_size" = Option<u32>, Query, description = "Number of items per page"),
     ),
     responses(
         (status = 200, description = "Lotteries fetched successfully", body = Vec<LotteryOutputDto>),

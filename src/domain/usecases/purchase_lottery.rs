@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 use chrono::FixedOffset;
-use sea_orm::{ActiveValue::Set, DatabaseConnection, TransactionTrait};
+use sea_orm::{prelude::Decimal, ActiveValue::Set, DatabaseConnection, TransactionTrait};
 use uuid::Uuid;
 
 use crate::{
@@ -87,12 +87,27 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone> PurchaseLotteryUs
             )));
         }
 
+        // memoized tickets to avoid duplicated ones
+        let mut memoized_lotteries: HashSet<Decimal> = HashSet::new();
+
         // all the tickets must have 5 numbers
         for ticket in &lotteries.tickets {
             if ticket.numbers.len() != 5 { // TODO: parameterize numbers in ticket
                 return Err(Box::new(Rfc7807Problem::simple_bad_request(
                     Some("Error al comprar sus tickets"),
                     Some("Todos los tickets deben tener 5 números"),
+                    None,
+                )));
+            }
+
+            // transforming into bitboards
+            let binary = bitboards::parse_vec_into_bitboard(ticket.numbers.clone());
+
+            // checking for duplicates
+            if !memoized_lotteries.insert(binary) {
+                return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                    Some("Error al comprar sus tickets"),
+                    Some("No puede comprar tickets duplicados"),
                     None,
                 )));
             }
