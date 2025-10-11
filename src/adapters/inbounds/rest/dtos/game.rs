@@ -40,7 +40,7 @@ pub struct CreateGameDto {
         maximum = 1000,
         message = "El número máximo de jugadas por lote debe ser menor a 20"
     )]
-    pub max_tickets_per_lottery: Option<i32>,
+    pub max_tickets_per_lottery: i32,
 
     /// Game finish date and time (optional)
     #[schema(example = "2025-12-25T23:59:59Z")]

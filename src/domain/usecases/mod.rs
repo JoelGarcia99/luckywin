@@ -1,3 +1,4 @@
+pub mod close_game;
 pub mod create_game;
 pub mod get_batch_by_ids;
 pub mod get_current_user;

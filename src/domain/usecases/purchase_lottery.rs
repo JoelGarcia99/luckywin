@@ -50,29 +50,6 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone> PurchaseLotteryUs
         &self,
         lotteries: LotteriesPurchaseDto,
     ) -> StandardOutput<Vec<LotteryOutputDto>> {
-
-        let length = lotteries.tickets.len();
-
-        // the number of tickets must be between 1 and 5
-        if !(1..=5).contains(&length) {
-            return Err(Box::new(Rfc7807Problem::simple_bad_request(
-                Some("Error al comprar sus tickets"),
-                Some("Debe comprar entre 1 y 5 tockets"),
-                None,
-            )));
-        }
-
-        // all the tickets must have 5 numbers
-        for ticket in &lotteries.tickets {
-            if ticket.numbers.len() != 5 {
-                return Err(Box::new(Rfc7807Problem::simple_bad_request(
-                    Some("Error al comprar sus tickets"),
-                    Some("Todos los tickets deben tener 5 números"),
-                    None,
-                )));
-            }
-        }
-
         // transactions in order to create lotteries and upsert the client
         let txn = self.db.begin().await.unwrap();
 
@@ -99,6 +76,27 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone> PurchaseLotteryUs
             (_, Err(e)) => return Err(e),
         };
 
+        let length = lotteries.tickets.len();
+
+        // the number of tickets must be between 1 and 5
+        if !(1..=(game.max_tickets_per_lottery as usize)).contains(&length) {
+            return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                Some("Error al comprar sus tickets"),
+                Some("Debe comprar entre 1 y 5 tockets"),
+                None,
+            )));
+        }
+
+        // all the tickets must have 5 numbers
+        for ticket in &lotteries.tickets {
+            if ticket.numbers.len() != 5 { // TODO: parameterize numbers in ticket
+                return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                    Some("Error al comprar sus tickets"),
+                    Some("Todos los tickets deben tener 5 números"),
+                    None,
+                )));
+            }
+        }
 
         // creating proper active models
         let mut active_models = Vec::new();

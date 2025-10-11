@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryOrder,
+    QueryOrder, Set,
 };
 use uuid::Uuid;
 
@@ -29,15 +29,7 @@ impl GamesRepo for GamesRepoImpl {
             .await
             .map_err(|e| process_db_err(&e))?;
 
-        Ok(StandardResponse::created(GameOutputDto {
-            id: inserted.id,
-            title: inserted.title,
-            banner_url: inserted.banner_url,
-            ticket_price: inserted.ticket_price,
-            finished_at: inserted.finished_at.map(|dt| dt.into()),
-            created_at: inserted.created_at.into(),
-            updated_at: inserted.updated_at.into(),
-        }))
+        Ok(StandardResponse::created(inserted.into()))
     }
 
     async fn list_paginated<C>(
@@ -65,16 +57,8 @@ impl GamesRepo for GamesRepoImpl {
 
         let dtos = games
             .into_iter()
-            .map(|game| GameOutputDto {
-                id: game.id,
-                title: game.title,
-                banner_url: game.banner_url,
-                ticket_price: game.ticket_price,
-                finished_at: game.finished_at.map(|dt| dt.into()),
-                created_at: game.created_at.into(),
-                updated_at: game.updated_at.into(),
-            })
-            .collect();
+            .map(|game| game.into())
+            .collect::<Vec<GameOutputDto>>();
 
         let paginator = PaginatorResponse::new(total_records, page, per_page);
 
@@ -98,15 +82,7 @@ impl GamesRepo for GamesRepoImpl {
             })?;
 
         Ok(StandardResponse::simple(
-            GameOutputDto {
-                id: game.id,
-                title: game.title,
-                banner_url: game.banner_url,
-                ticket_price: game.ticket_price,
-                finished_at: game.finished_at.map(|dt| dt.into()),
-                created_at: game.created_at.into(),
-                updated_at: game.updated_at.into(),
-            },
+            game.into(),
             None,
         ))
     }
@@ -130,15 +106,7 @@ impl GamesRepo for GamesRepoImpl {
             })?;
 
         Ok(StandardResponse::simple(
-            GameOutputDto {
-                id: game.id,
-                title: game.title,
-                banner_url: game.banner_url,
-                ticket_price: game.ticket_price,
-                finished_at: game.finished_at.map(|dt| dt.into()),
-                created_at: game.created_at.into(),
-                updated_at: game.updated_at.into(),
-            },
+            game.into(),
             None,
         ))
     }
@@ -163,16 +131,47 @@ impl GamesRepo for GamesRepoImpl {
 
         Ok(StandardResponse::simple(
             game.into_iter()
-                .map(|game| GameOutputDto {
-                    id: game.id,
-                    title: game.title,
-                    banner_url: game.banner_url,
-                    ticket_price: game.ticket_price,
-                    finished_at: game.finished_at.map(|dt| dt.into()),
-                    created_at: game.created_at.into(),
-                    updated_at: game.updated_at.into(),
-                })
-                .collect(),
+                .map(|game| game.into())
+                .collect::<Vec<GameOutputDto>>(),
+            None,
+        ))
+    }
+
+    async fn close_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
+    where
+        C: ConnectionTrait,
+    {
+        // Find the game by ID, excluding soft-deleted records
+        let game = Entity::find_by_id(*game_id)
+            .filter(Column::DeletedAt.is_null())
+            .one(db)
+            .await
+            .map_err(|e| process_db_err(&e))?
+            .ok_or_else(|| {
+                Rfc7807Problem::not_found(
+                    Some("Juego no encontrado"),
+                    Some("El juego especificado no existe o ha sido eliminado"),
+                )
+            })?;
+
+        // Check if game is already finished
+        if game.finished_at.is_some() {
+            return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                Some("El juego ya está cerrado"),
+                Some("Este juego ya fue cerrado anteriormente"),
+                Some("GAME_ALREADY_CLOSED"),
+            )));
+        }
+
+        // Update the finished_at timestamp
+        let mut active_model: games::ActiveModel = game.into();
+        active_model.finished_at = Set(Some(chrono::Utc::now().into()));
+        active_model.updated_at = Set(chrono::Utc::now().into());
+
+        let updated_game = active_model.update(db).await.map_err(|e| process_db_err(&e))?;
+
+        Ok(StandardResponse::simple(
+            updated_game.into(),
             None,
         ))
     }

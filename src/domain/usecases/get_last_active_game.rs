@@ -17,6 +17,6 @@ impl<'a, R: GamesRepo, C: ConnectionTrait> GetLastActiveGameUseCase<'a ,R, C> {
     }
 
     pub async fn execute(&self) -> StandardOutput<GameOutputDto> {
-        self.repo.get_last_active(&*self.db).await
+        self.repo.get_last_active(self.db).await
     }
 }

@@ -9,7 +9,7 @@ use crate::{
     adapters::{
         inbounds::rest::dtos::user::UpdateUserDto,
         outbound::{
-            db::{error_parsing::process_db_err, users::UsersRepoImpl},
+            db::users::UsersRepoImpl,
             rest::dtos::users::CurrentUserDto,
         },
     },
@@ -35,7 +35,7 @@ impl UpdateCurrentUserUseCase {
         dto.validate()
             .map_err(|e| Rfc7807Problem::from_validator_err(&e.to_string()))?;
 
-        let mut user = self
+        let user = self
             .users_repo
             .find_by_id(user_id, &*self.db)
             .await?

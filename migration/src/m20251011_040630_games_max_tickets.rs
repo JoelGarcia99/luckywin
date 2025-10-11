@@ -10,7 +10,7 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Games::Table)
-                    .add_column(ColumnDef::new(Games::MaxPlaysPerLottery).integer())
+                    .add_column(ColumnDef::new(Games::MaxPlaysPerLottery).integer().not_null().default(5))
                     .to_owned(),
             )
             .await

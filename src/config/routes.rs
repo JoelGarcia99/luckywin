@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     adapters::inbounds::rest::controllers::{
         auth::{login, logout, refresh_token},
-        game::{create_game, get_last_active_game},
+        game::{close_game, create_game, get_last_active_game},
         health::check_health,
         lottery::{get_lotteries_by_game, mark_lottery_as_paid, purchase_lottery},
         user::{get_current_user, update_current_user},
@@ -25,6 +25,7 @@ pub const GET_LOTTERIES_BY_GAME: &str = "/lottery/by-game/{game_id}";
 
 // games
 pub const CREATE_GAME: &str = "/games";
+pub const CLOSE_GAME: &str = "/games/{game_id}/close";
 pub const GET_LAST_ACTIVE_GAME: &str = "/games/active";
 
 // users
@@ -49,6 +50,7 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
         )
         // Game routes
         .route(CREATE_GAME, axum::routing::post(create_game))
+        .route(CLOSE_GAME, axum::routing::post(close_game))
         .route(
             GET_LAST_ACTIVE_GAME,
             axum::routing::get(get_last_active_game),

@@ -40,4 +40,9 @@ pub trait GamesRepo: Send + Sync + Copy {
     async fn get_batch_by_ids<C>(&self, db: &C, ids: &Vec<Uuid>) -> StandardOutput<Vec<GameOutputDto>>
     where
         C: ConnectionTrait;
+
+    /// Closes a game by setting finished_at to current timestamp
+    async fn close_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
+    where
+        C: ConnectionTrait;
 }
