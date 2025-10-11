@@ -6,7 +6,7 @@ use crate::{
         game::{close_game, create_game, get_last_active_game},
         health::check_health,
         lottery::{get_lotteries_by_game, mark_lottery_as_paid, purchase_lottery},
-        user::{get_current_user, update_current_user},
+        user::{get_current_user, get_user_by_email, update_current_user},
     },
     config::state::AppState,
 };
@@ -30,6 +30,7 @@ pub const GET_LAST_ACTIVE_GAME: &str = "/games/active";
 
 // users
 pub const GET_CURRENT_USER: &str = "/users/me";
+pub const GET_USER_BY_EMAIL: &str = "/users/by-email";
 
 pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
@@ -60,4 +61,5 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
             GET_CURRENT_USER,
             axum::routing::get(get_current_user).patch(update_current_user),
         )
+        .route(GET_USER_BY_EMAIL, axum::routing::get(get_user_by_email))
 }

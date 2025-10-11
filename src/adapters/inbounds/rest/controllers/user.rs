@@ -1,18 +1,19 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State, http::HeaderMap};
-use utoipa::OpenApi;
+use axum::{Json, extract::{Query, State}, http::HeaderMap};
+use serde::Deserialize;
+use utoipa::{IntoParams, OpenApi};
 
 use crate::{
     adapters::{
         inbounds::rest::dtos::user::UpdateUserDto,
-        outbound::{db::users::UsersRepoImpl, rest::dtos::users::CurrentUserDto},
+        outbound::{db::users::UsersRepoImpl, rest::dtos::users::UserOutputDto},
     },
     config::state::AppState,
     domain::{
         enums::roles::Roles,
         usecases::{
-            get_current_user::GetCurrentUserUseCase, update_current_user::UpdateCurrentUserUseCase,
+            get_current_user::GetCurrentUserUseCase, get_user_by_email::GetUserByEmailUseCase, update_current_user::UpdateCurrentUserUseCase,
         },
     },
     shared::{
@@ -22,8 +23,16 @@ use crate::{
     },
 };
 
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in=Query)]
+pub struct GetUserByEmailQueryParams {
+    /// User email to search for
+    #[param(inline)]
+    pub email: String,
+}
+
 #[derive(OpenApi)]
-#[openapi(paths(get_current_user, update_current_user))]
+#[openapi(paths(get_current_user, update_current_user, get_user_by_email))]
 pub struct ApiDoc;
 
 /// @admin Get current user in session
@@ -34,7 +43,7 @@ pub struct ApiDoc;
     path = "/me",
     tags = ["users"],
     responses(
-        (status = 200, description = "Current user retrieved successfully", body = CurrentUserDto),
+        (status = 200, description = "Current user retrieved successfully", body = UserOutputDto),
         (status = 401, description = "Unauthorized", body = Rfc7807Problem),
         (status = 404, description = "User not found", body = Rfc7807Problem)
     ),
@@ -45,7 +54,7 @@ pub struct ApiDoc;
 pub async fn get_current_user(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
-) -> StandardOutput<CurrentUserDto> {
+) -> StandardOutput<UserOutputDto> {
     let access_token = headers
         .get("Authorization")
         .and_then(|v| v.to_str().ok())
@@ -75,7 +84,7 @@ pub async fn get_current_user(
     tags = ["users"],
     request_body = UpdateUserDto,
     responses(
-        (status = 200, description = "User updated successfully", body = CurrentUserDto),
+        (status = 200, description = "User updated successfully", body = UserOutputDto),
         (status = 400, description = "Invalid data", body = Rfc7807Problem),
         (status = 401, description = "Unauthorized", body = Rfc7807Problem),
         (status = 404, description = "User not found", body = Rfc7807Problem)
@@ -88,7 +97,7 @@ pub async fn update_current_user(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(dto): Json<UpdateUserDto>,
-) -> StandardOutput<CurrentUserDto> {
+) -> StandardOutput<UserOutputDto> {
     tracing::debug!("Seeing what's going on {:?}", headers.get("Authorization"));
     let access_token = headers
         .get("Authorization")
@@ -117,4 +126,27 @@ pub async fn update_current_user(
     let use_case = UpdateCurrentUserUseCase::new(users_repo, Arc::clone(&state.db));
 
     use_case.execute(&payload.sub, &dto).await
+}
+
+/// Get user by email
+///
+/// Retrieves user information by email address (public endpoint - no authentication required)
+#[utoipa::path(
+    get,
+    path = "/by-email",
+    tags = ["users"],
+    params(GetUserByEmailQueryParams),
+    responses(
+        (status = 200, description = "User retrieved successfully", body = UserOutputDto),
+        (status = 404, description = "User not found", body = Rfc7807Problem)
+    )
+)]
+pub async fn get_user_by_email(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<GetUserByEmailQueryParams>,
+) -> StandardOutput<UserOutputDto> {
+    let users_repo = UsersRepoImpl;
+    let use_case = GetUserByEmailUseCase::new(users_repo, Arc::clone(&state.db));
+
+    use_case.execute(&params.email).await
 }

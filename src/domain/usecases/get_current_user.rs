@@ -4,7 +4,7 @@ use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::{db::users::UsersRepoImpl, rest::dtos::users::CurrentUserDto},
+    adapters::outbound::{db::users::UsersRepoImpl, rest::dtos::users::UserOutputDto},
     domain::repositories::users::UsersRepo,
     shared::errors::{Rfc7807Problem, StandardOutput, StandardResponse},
 };
@@ -19,7 +19,7 @@ impl GetCurrentUserUseCase {
         Self { users_repo, db }
     }
 
-    pub async fn execute(&self, user_id: &Uuid) -> StandardOutput<CurrentUserDto> {
+    pub async fn execute(&self, user_id: &Uuid) -> StandardOutput<UserOutputDto> {
         let user = self
             .users_repo
             .find_by_id(user_id, &*self.db)
@@ -32,19 +32,6 @@ impl GetCurrentUserUseCase {
                 ))
             })?;
 
-        Ok(StandardResponse::simple(
-            CurrentUserDto {
-                id: user.id,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                location: user.location,
-                cellphone: user.cellphone,
-                email: user.email,
-                role: user.role,
-                created_at: user.created_at.into(),
-                updated_at: user.updated_at.into(),
-            },
-            None,
-        ))
+        Ok(StandardResponse::simple(user.into(), None))
     }
 }

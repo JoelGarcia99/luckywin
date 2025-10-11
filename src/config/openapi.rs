@@ -20,7 +20,7 @@ use crate::{
             },
         },
         outbound::rest::dtos::{
-            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto, users::CurrentUserDto,
+            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto, users::UserOutputDto,
         },
     },
     config::state::AppState,
@@ -117,7 +117,7 @@ impl Modify for SecurityAddon {
         LoginOutputDto,
         RefreshTokenInputDto,
         LogoutOutputDto,
-        CurrentUserDto,
+        UserOutputDto,
         UpdateUserDto,
         // Client DTOs
         ClientsInputDto,

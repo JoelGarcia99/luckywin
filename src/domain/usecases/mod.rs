@@ -4,6 +4,7 @@ pub mod get_batch_by_ids;
 pub mod get_current_user;
 pub mod get_last_active_game;
 pub mod get_lotteries_by_game;
+pub mod get_user_by_email;
 pub mod login;
 pub mod logout;
 pub mod mark_lottery_as_paid;

@@ -10,7 +10,7 @@ use crate::{
         inbounds::rest::dtos::user::UpdateUserDto,
         outbound::{
             db::users::UsersRepoImpl,
-            rest::dtos::users::CurrentUserDto,
+            rest::dtos::users::UserOutputDto,
         },
     },
     domain::{entities::users, repositories::users::UsersRepo},
@@ -31,7 +31,7 @@ impl UpdateCurrentUserUseCase {
         &self,
         user_id: &Uuid,
         dto: &UpdateUserDto,
-    ) -> StandardOutput<CurrentUserDto> {
+    ) -> StandardOutput<UserOutputDto> {
         dto.validate()
             .map_err(|e| Rfc7807Problem::from_validator_err(&e.to_string()))?;
 
@@ -81,7 +81,7 @@ impl UpdateCurrentUserUseCase {
             .data;
 
         Ok(StandardResponse::simple(
-            CurrentUserDto {
+            UserOutputDto {
                 id: updated_user.id,
                 first_name: updated_user.first_name,
                 last_name: updated_user.last_name,
