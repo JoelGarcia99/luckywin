@@ -116,7 +116,7 @@ impl GamesRepo for GamesRepoImpl {
         C: ConnectionTrait,
     {
         let game = Entity::find()
-            .filter(Column::ClosedAt.is_null())
+            .filter(Column::FinishedAt.is_null())
             .filter(Column::DeletedAt.is_null())
             .order_by_desc(Column::CreatedAt)
             .one(db)
@@ -153,7 +153,7 @@ impl GamesRepo for GamesRepoImpl {
         C: ConnectionTrait,
     {
         let game = Entity::find()
-            .filter(Column::ClosedAt.is_null())
+            .filter(Column::FinishedAt.is_null())
             .filter(Column::DeletedAt.is_null())
             .filter(Column::Id.is_in(ids.clone().into_iter().map(|id| id).collect::<Vec<Uuid>>()))
             .order_by_desc(Column::CreatedAt)

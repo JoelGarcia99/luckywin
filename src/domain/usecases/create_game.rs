@@ -55,11 +55,10 @@ impl<R: GamesRepo + Clone, C: ConnectionTrait> CreateGameUseCase<R, C> {
             title: Set(game_dto.title.clone()),
             banner_url: Set(game_dto.banner_url.clone()),
             ticket_price: Set(game_dto.ticket_price),
-            finished_at: Set(game_dto.finished_at.map(|dt| dt.into())),
-            closed_at: Set(None),
             created_at: Set(now.into()),
             updated_at: Set(now.into()),
             deleted_at: Set(None),
+            ..Default::default()
         };
 
         self.repo.create(&active_model, &*self.db).await

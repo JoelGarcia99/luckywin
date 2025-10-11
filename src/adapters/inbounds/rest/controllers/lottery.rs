@@ -1,13 +1,19 @@
 use std::sync::Arc;
 
-use axum::{extract::{Path, Query, State}, http::HeaderMap, Json};
+use axum::{
+    Json,
+    extract::{Path, Query, State},
+    http::HeaderMap,
+};
 use serde_valid::Validate;
 use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::{
     adapters::{
-        inbounds::rest::dtos::lottery::{GetLotteriesByGameQueryParams, LotteriesPurchaseDto, MarkLotteryAsPaidQueryParams},
+        inbounds::rest::dtos::lottery::{
+            GetLotteriesByGameQueryParams, LotteriesPurchaseDto, MarkLotteryAsPaidQueryParams,
+        },
         outbound::{
             db::{clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl},
             rest::dtos::lottery::LotteryOutputDto,
@@ -16,7 +22,11 @@ use crate::{
     config::state::AppState,
     domain::{
         enums::roles::Roles,
-        usecases::{get_lotteries_by_game::GetLotteriesByGameUseCase, mark_lottery_as_paid::MarkLotteryAsPaidUseCase, purchase_lottery::PurchaseLotteryUseCase},
+        usecases::{
+            get_lotteries_by_game::GetLotteriesByGameUseCase,
+            mark_lottery_as_paid::MarkLotteryAsPaidUseCase,
+            purchase_lottery::PurchaseLotteryUseCase,
+        },
     },
     shared::{
         errors::{Rfc7807Problem, StandardOutput},
@@ -36,7 +46,7 @@ pub struct ApiDoc;
     post,
     path = "/purchase",
     tags = ["lottery"],
-    request_body = LotteriesPurchaseDto,
+    request_body(content = LotteriesPurchaseDto, content_type = "application/json"),
     responses(
         (status = 201, description = "Lotteries purchased", body = Vec<LotteryOutputDto>),
         (status = 400, description = "Error purchasing lotteries", body = Rfc7807Problem)
@@ -46,6 +56,7 @@ pub async fn purchase_lottery(
     State(state): State<Arc<AppState>>,
     Json(body): Json<LotteriesPurchaseDto>,
 ) -> StandardOutput<Vec<LotteryOutputDto>> {
+    tracing::debug!("Creating purchase");
     body.validate()
         .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
 
@@ -177,5 +188,7 @@ pub async fn get_lotteries_by_game(
     // Create and execute use case
     let use_case = GetLotteriesByGameUseCase::new(lotteries_repo, Arc::clone(&state.db));
 
-    use_case.execute(game_id, params.page, params.per_page, params.serial).await
+    use_case
+        .execute(game_id, params.page, params.per_page, params.serial)
+        .await
 }

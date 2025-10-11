@@ -1,6 +1,8 @@
 # Database data directories
 luckywin_db_data/
+luckywin_db_data
 licky_win_db_data/
+licky_win_db_data
 
 # Rust build artifacts
 target/

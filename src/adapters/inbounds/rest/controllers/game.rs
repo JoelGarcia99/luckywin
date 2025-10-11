@@ -1,17 +1,28 @@
 use std::sync::Arc;
 
-use axum::extract::State;
+use axum::{extract::State, http::HeaderMap, Json};
+use serde_valid::Validate;
 use utoipa::OpenApi;
 
 use crate::{
-    adapters::outbound::{db::games::GamesRepoImpl, rest::dtos::game::GameOutputDto},
+    adapters::{
+        inbounds::rest::dtos::game::CreateGameDto,
+        outbound::{db::games::GamesRepoImpl, rest::dtos::game::GameOutputDto},
+    },
     config::state::AppState,
-    domain::usecases::get_last_active_game::GetLastActiveGameUseCase,
-    shared::errors::{Rfc7807Problem, StandardOutput},
+    domain::{
+        enums::roles::Roles,
+        usecases::{create_game::CreateGameUseCase, get_last_active_game::GetLastActiveGameUseCase},
+    },
+    shared::{
+        errors::{Rfc7807Problem, StandardOutput},
+        payloads::AccessTokenPayload,
+        utils::jwt::decode_jwt,
+    },
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(get_last_active_game))]
+#[openapi(paths(get_last_active_game, create_game))]
 pub struct ApiDoc;
 
 /// Get the last active game
@@ -37,4 +48,63 @@ pub async fn get_last_active_game(
 
     // Execute the use case
     use_case.execute().await
+}
+
+/// @admin Create a new game
+///
+/// Creates a new game/lottery. Only one active game is allowed at a time (Admin only)
+#[utoipa::path(
+    post,
+    path = "",
+    tags = ["games"],
+    request_body(content = CreateGameDto, content_type = "application/json"),
+    responses(
+        (status = 201, description = "Game created successfully", body = GameOutputDto),
+        (status = 400, description = "Validation error or another game is active", body = Rfc7807Problem),
+        (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem)
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn create_game(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(body): Json<CreateGameDto>,
+) -> StandardOutput<GameOutputDto> {
+    // Validate input
+    body.validate()
+        .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
+
+    // Extract and validate access token
+    let access_token = headers
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| {
+            Box::new(Rfc7807Problem::unauthorized(
+                Some("Token de acceso requerido"),
+                Some("El header Authorization es requerido"),
+                Some("MISSING_ACCESS_TOKEN"),
+            ))
+        })?;
+
+    // Decode JWT and verify admin role
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
+
+    if payload.role != Roles::Admin.to_string() {
+        return Err(Box::new(Rfc7807Problem::unauthorized(
+            Some("Acceso denegado"),
+            Some("Solo los administradores pueden crear juegos"),
+            Some("ADMIN_ACCESS_REQUIRED"),
+        )));
+    }
+
+    // Instantiate repository
+    let games_repo = GamesRepoImpl;
+
+    // Create and execute use case
+    let use_case = CreateGameUseCase::new(games_repo, Arc::clone(&state.db));
+
+    use_case.execute(&body).await
 }

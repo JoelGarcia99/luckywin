@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get};
+use axum::{response::Html, routing::get, Json};
 use utoipa::{
     Modify, OpenApi,
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
@@ -30,12 +30,16 @@ use crate::{
 pub fn build_docs() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/docs", get(build_scalar_html))
-        .merge(SwaggerUi::new("/swagger-docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .route("/api-docs/openapi.json", get(openapi))
+}
+
+async fn openapi() -> Json<utoipa::openapi::OpenApi> {
+    Json(ApiDoc::openapi())
 }
 
 async fn build_scalar_html() -> Html<&'static str> {
     Html(
-        r#"
+r#"
 <!doctype html>
 <html>
 <head>
@@ -52,113 +56,19 @@ async fn build_scalar_html() -> Html<&'static str> {
 
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 <script>
-    // Helper to update auth header input field
-    function updateAuthTokenUI(token) {
-      // Try to find and update the bearer token input field
-      setTimeout(() => {
-        const authInput = document.querySelector('input[placeholder*="Bearer"], input[type="password"]');
-        if (authInput) {
-          authInput.value = token;
-          authInput.dispatchEvent(new Event('input', { bubbles: true }));
-          authInput.dispatchEvent(new Event('change', { bubbles: true }));
-          console.log('✅ Token UI updated!');
-        }
-      }, 500);
-    }
-
-    // Unified fetch interceptor for auth injection and token extraction
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-      // BEFORE REQUEST: Auto-inject auth token
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        const [url, options = {}] = args;
-        const requestUrl = typeof url === 'string' ? url : url.url;
-
-        if (requestUrl.includes('/api/v1/') && !requestUrl.includes('/auth/login')) {
-          options.headers = options.headers || {};
-          if (!options.headers['Authorization']) {
-            options.headers['Authorization'] = `Bearer ${token}`;
-          }
-          args[1] = options;
-        }
-      }
-
-      // MAKE REQUEST
-      const response = await originalFetch(...args);
-
-      // AFTER REQUEST: Extract token from login response
-      const clonedResponse = response.clone();
-      try {
-        const url = typeof args[0] === 'string' ? args[0] : args[0].url;
-
-        if (url.includes('/auth/login') && response.ok) {
-          const data = await clonedResponse.json();
-
-          if (data.data?.access_token) {
-            const newToken = data.data.access_token;
-            localStorage.setItem('access_token', newToken);
-            localStorage.setItem('refresh_token', data.data.refresh_token);
-            console.log('✅ Token auto-saved!');
-
-            // Try to update the UI directly
-            updateAuthTokenUI(newToken);
-
-            // Show a non-intrusive notification
-            const notification = document.createElement('div');
-            notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:12px 20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;font-family:system-ui;font-size:14px;animation:slideIn 0.3s ease-out;';
-            notification.innerHTML = '✓ Token saved and applied!';
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-              notification.style.animation = 'slideOut 0.3s ease-out';
-              setTimeout(() => notification.remove(), 300);
-            }, 3000);
-          }
-        }
-      } catch (e) {
-        // Ignore errors (response might not be JSON)
-      }
-
-      return response;
-    };
-
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    // Mount Scalar with auth configuration
-    const configuration = {
+    // 3) Mount Scalar AFTER the script is loaded and #app exists.
+    // Use the KrakenD path that returns 200 in your browser.
+    Scalar.createApiReference('#app', {
       url: '/api/v1/api-docs/openapi.json',
-      layout: 'modern',
-      authentication: {
-        preferredSecurityScheme: 'bearer_auth',
-        http: {
-          bearer: {
-            token: localStorage.getItem('access_token') || ''
-          }
-        }
-      }
-    };
+      layout: 'modern'
+    });
 
-    Scalar.createApiReference('#app', configuration);
-
-    // Debug: surface errors
+    // 4) Debug: surface errors
     window.addEventListener('unhandledrejection', e => console.error('Promise error:', e.reason));
   </script>
 </body>
 </html>
-        "#,
+"#
     )
 }
 

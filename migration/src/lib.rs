@@ -13,6 +13,7 @@ mod m20251009_082241_closed_at_for_games;
 mod m20251009_175344_numbers_datatype_128_bits;
 mod m20251010_052043_finished_at_optional;
 mod m20251010_063315_enhance_sessions_security;
+mod m20251011_024155_remove_closed_at_from_games;
 
 pub struct Migrator;
 
@@ -33,6 +34,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251009_175344_numbers_datatype_128_bits::Migration),
             Box::new(m20251010_052043_finished_at_optional::Migration),
             Box::new(m20251010_063315_enhance_sessions_security::Migration),
+            Box::new(m20251011_024155_remove_closed_at_from_games::Migration),
         ]
     }
 }

@@ -123,8 +123,23 @@ echo "==> Running API tests"
 #
 ### BUILD
 echo "==> Build images (tag ${TAG})"
+
+# Temporarily move DB data out of build context if it exists and is inaccessible
+DB_DATA_MOVED=0
+if [ -e "luckywin_db_data" ] && ! [ -r "luckywin_db_data" ]; then
+  echo "==> Temporarily moving DB data out of build context"
+  sudo mv luckywin_db_data /tmp/luckywin_db_data_temp_$$ 2>/dev/null || true
+  DB_DATA_MOVED=1
+fi
+
 docker build --target "${API_TARGET}"    -t "${IMG_TAG_API}"     "${API_CONTEXT}"
 # docker build --target "${MAILER_TARGET}" -t "${IMG_TAG_MAILER}"  "${MAILER_CONTEXT}"
+
+# Move DB data back if we moved it
+if [ "${DB_DATA_MOVED}" = "1" ]; then
+  echo "==> Restoring DB data to original location"
+  sudo mv /tmp/luckywin_db_data_temp_$$ luckywin_db_data 2>/dev/null || true
+fi
 
 echo "==> Save images to ${TAR_FILE}"
 docker save -o "${TAR_FILE}" "${IMG_TAG_API}"
