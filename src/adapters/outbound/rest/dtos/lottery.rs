@@ -1,10 +1,12 @@
 use serde::Serialize;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::{domain::entities::lotteries, shared::utils::bitboards};
 
 #[derive(Debug, Serialize, ToSchema, Default)]
 pub struct LotteryOutputDto {
+    pub id: Uuid,
     pub client_name: String,
     pub client_email: Option<String>,
     pub client_cellphone: Option<String>,
@@ -20,6 +22,7 @@ pub struct LotteryOutputDto {
 impl From<lotteries::Model> for LotteryOutputDto {
     fn from(value: lotteries::Model) -> Self {
         Self {
+            id: value.id,
             client_name: value.client_name,
             total_paid: value.total_paid,
             status: value.status,
