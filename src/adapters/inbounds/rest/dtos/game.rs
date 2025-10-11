@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 pub struct CreateGameDto {
     /// Game title (must be between 10 and 255 characters)
     #[validate(
-        min_length = 10,
+        min_length = 5,
         message = "El título debe tener al menos 10 caracteres"
     )]
     #[validate(
