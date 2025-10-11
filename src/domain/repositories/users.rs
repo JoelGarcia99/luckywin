@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{ConnectionTrait, DbErr};
+use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
 use crate::{

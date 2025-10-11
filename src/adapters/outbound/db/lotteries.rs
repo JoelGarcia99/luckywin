@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set};
+use sea_orm::{ColumnTrait, ConnectionTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
 use uuid::Uuid;
 
 use crate::{
@@ -62,38 +62,6 @@ impl LotteriesRepo for LotteriesRepoImpl {
                 .collect::<Vec<LotteryOutputDto>>(),
             None,
         ))
-    }
-
-    async fn update_status<C>(
-        &self,
-        lottery_id: Uuid,
-        status: String,
-        db: &C,
-    ) -> StandardOutput<LotteryOutputDto>
-    where
-        C: ConnectionTrait,
-    {
-        // Find the lottery by ID, excluding soft-deleted records
-        let lottery = lotteries::Entity::find_by_id(lottery_id)
-            .filter(lotteries::Column::DeletedAt.is_null())
-            .one(db)
-            .await
-            .map_err(|e| process_db_err(&e))?
-            .ok_or_else(|| {
-                Box::new(crate::shared::errors::Rfc7807Problem::not_found(
-                    Some("Lotería no encontrada"),
-                    Some("La lotería especificada no existe o ha sido eliminada"),
-                ))
-            })?;
-
-        // Update the status
-        let mut active_model: lotteries::ActiveModel = lottery.into();
-        active_model.status = Set(status);
-        active_model.updated_at = Set(chrono::Utc::now().into());
-
-        let updated_lottery = active_model.update(db).await.map_err(|e| process_db_err(&e))?;
-
-        Ok(StandardResponse::simple(updated_lottery.into(), None))
     }
 
     async fn get_by_game_id_paginated<C>(

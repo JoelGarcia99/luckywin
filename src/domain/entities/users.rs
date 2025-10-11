@@ -24,17 +24,17 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::lotteries::Entity")]
-    Lotteries,
+    #[sea_orm(has_many = "super::purchases::Entity")]
+    Purchases,
     #[sea_orm(has_many = "super::sessions::Entity")]
     Sessions,
     #[sea_orm(has_many = "super::winners::Entity")]
     Winners,
 }
 
-impl Related<super::lotteries::Entity> for Entity {
+impl Related<super::purchases::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Lotteries.def()
+        Relation::Purchases.def()
     }
 }
 

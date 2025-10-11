@@ -27,16 +27,6 @@ pub trait LotteriesRepo: Send + Sync {
     where
         C: ConnectionTrait;
 
-    /// Updates the status of a lottery
-    async fn update_status<C>(
-        &self,
-        lottery_id: Uuid,
-        status: String,
-        db: &C,
-    ) -> StandardOutput<LotteryOutputDto>
-    where
-        C: ConnectionTrait;
-
     /// Gets paginated lotteries by game ID with optional serial filter
     async fn get_by_game_id_paginated<C>(
         &self,

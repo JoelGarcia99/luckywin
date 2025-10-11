@@ -1,6 +1,4 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 /// This will be the claim to encode within an access token and give it to the user

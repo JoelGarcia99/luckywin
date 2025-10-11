@@ -30,7 +30,7 @@ pub struct CreateGameDto {
     #[schema(example = 150)]
     pub ticket_price: i32,
 
-    /// Maximum number of plays per lottery (optional)
+    /// Maximum number of plays per lottery
     #[schema(example = 10)]
     #[validate(
         minimum = 1,
@@ -38,11 +38,11 @@ pub struct CreateGameDto {
     )]
     #[validate(
         maximum = 1000,
-        message = "El número máximo de jugadas por lote debe ser menor a 20"
+        message = "El número máximo de jugadas por lote debe ser menor a 1000"
     )]
     pub max_tickets_per_lottery: i32,
 
-    /// Game finish date and time (optional)
-    #[schema(example = "2025-12-25T23:59:59Z")]
-    pub finished_at: Option<DateTime<Utc>>,
+    /// Game close date and time - when purchases should stop (optional)
+    #[schema(example = "2025-12-24T18:00:00Z")]
+    pub closes_at: Option<DateTime<Utc>>,
 }

@@ -15,6 +15,10 @@ mod m20251010_052043_finished_at_optional;
 mod m20251010_063315_enhance_sessions_security;
 mod m20251011_024155_remove_closed_at_from_games;
 mod m20251011_040630_games_max_tickets;
+mod m20251011_061042_create_purchases_table_and_restructure;
+mod m20251011_064042_make_purchase_serial_auto_increment;
+mod m20251011_070011_add_missing_indexes;
+mod m20251011_172622_closes_at_to_game;
 
 pub struct Migrator;
 
@@ -37,6 +41,10 @@ impl MigratorTrait for Migrator {
             Box::new(m20251010_063315_enhance_sessions_security::Migration),
             Box::new(m20251011_024155_remove_closed_at_from_games::Migration),
             Box::new(m20251011_040630_games_max_tickets::Migration),
+            Box::new(m20251011_061042_create_purchases_table_and_restructure::Migration),
+            Box::new(m20251011_064042_make_purchase_serial_auto_increment::Migration),
+            Box::new(m20251011_070011_add_missing_indexes::Migration),
+            Box::new(m20251011_172622_closes_at_to_game::Migration),
         ]
     }
 }

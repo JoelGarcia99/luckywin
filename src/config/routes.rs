@@ -3,9 +3,9 @@ use std::sync::Arc;
 use crate::{
     adapters::inbounds::rest::controllers::{
         auth::{login, logout, refresh_token},
-        game::{close_game, create_game, get_last_active_game},
+        game::{close_game, create_game, get_last_active_game, reopen_game},
         health::check_health,
-        lottery::{get_lotteries_by_game, mark_lottery_as_paid, purchase_lottery},
+        lottery::{get_lotteries_by_game, mark_lottery_as_paid, mark_lottery_as_unpaid, purchase_lottery},
         user::{get_current_user, get_user_by_email, update_current_user},
     },
     config::state::AppState,
@@ -21,11 +21,13 @@ pub const LOGOUT: &str = "/auth/logout";
 // lottery
 pub const PURCHASE_LOTTERY: &str = "/lottery/purchase";
 pub const MARK_LOTTERY_AS_PAID: &str = "/lottery/mark-as-paid";
+pub const MARK_LOTTERY_AS_UNPAID: &str = "/lottery/mark-as-unpaid";
 pub const GET_LOTTERIES_BY_GAME: &str = "/lottery/by-game/{game_id}";
 
 // games
 pub const CREATE_GAME: &str = "/games";
 pub const CLOSE_GAME: &str = "/games/{game_id}/close";
+pub const REOPEN_GAME: &str = "/games/{game_id}/reopen";
 pub const GET_LAST_ACTIVE_GAME: &str = "/games/active";
 
 // users
@@ -46,12 +48,17 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
             axum::routing::post(mark_lottery_as_paid),
         )
         .route(
+            MARK_LOTTERY_AS_UNPAID,
+            axum::routing::post(mark_lottery_as_unpaid),
+        )
+        .route(
             GET_LOTTERIES_BY_GAME,
             axum::routing::get(get_lotteries_by_game),
         )
         // Game routes
         .route(CREATE_GAME, axum::routing::post(create_game))
         .route(CLOSE_GAME, axum::routing::post(close_game))
+        .route(REOPEN_GAME, axum::routing::post(reopen_game))
         .route(
             GET_LAST_ACTIVE_GAME,
             axum::routing::get(get_last_active_game),

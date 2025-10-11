@@ -3,6 +3,7 @@
 pub use super::games::Entity as Games;
 pub use super::games_metadata::Entity as GamesMetadata;
 pub use super::lotteries::Entity as Lotteries;
+pub use super::purchases::Entity as Purchases;
 pub use super::sessions::Entity as Sessions;
 pub use super::users::Entity as Users;
 pub use super::winners::Entity as Winners;

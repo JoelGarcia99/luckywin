@@ -175,4 +175,43 @@ impl GamesRepo for GamesRepoImpl {
             None,
         ))
     }
+
+    async fn reopen_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
+    where
+        C: ConnectionTrait,
+    {
+        // Find the game by ID, excluding soft-deleted records
+        let game = Entity::find_by_id(*game_id)
+            .filter(Column::DeletedAt.is_null())
+            .one(db)
+            .await
+            .map_err(|e| process_db_err(&e))?
+            .ok_or_else(|| {
+                Rfc7807Problem::not_found(
+                    Some("Juego no encontrado"),
+                    Some("El juego especificado no existe o ha sido eliminado"),
+                )
+            })?;
+
+        // Check if game is already open
+        if game.finished_at.is_none() {
+            return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                Some("El juego ya está abierto"),
+                Some("Este juego no ha sido cerrado"),
+                Some("GAME_ALREADY_OPEN"),
+            )));
+        }
+
+        // Set finished_at to NULL to reopen the game
+        let mut active_model: games::ActiveModel = game.into();
+        active_model.finished_at = Set(None);
+        active_model.updated_at = Set(chrono::Utc::now().into());
+
+        let updated_game = active_model.update(db).await.map_err(|e| process_db_err(&e))?;
+
+        Ok(StandardResponse::simple(
+            updated_game.into(),
+            None,
+        ))
+    }
 }

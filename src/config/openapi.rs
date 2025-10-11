@@ -5,7 +5,6 @@ use utoipa::{
     Modify, OpenApi,
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
 };
-use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     adapters::{
@@ -15,12 +14,16 @@ use crate::{
                 auth::{LoginInputDto, LoginOutputDto, LogoutOutputDto, RefreshTokenInputDto},
                 client::ClientsInputDto,
                 game::CreateGameDto,
-                lottery::{CreateLotteryTicketDto, LotteriesPurchaseDto},
+                purchase::{CreatePurchaseDto, CreateTicketDto},
                 user::UpdateUserDto,
             },
         },
         outbound::rest::dtos::{
-            client::ClientOutputDto, game::GameOutputDto, lottery::LotteryOutputDto, users::UserOutputDto,
+            client::ClientOutputDto,
+            game::GameOutputDto,
+            lottery::LotteryOutputDto,
+            purchases::{PurchaseOutputDto, TicketOutputDto},
+            users::UserOutputDto,
         },
     },
     config::state::AppState,
@@ -126,9 +129,12 @@ impl Modify for SecurityAddon {
         CreateGameDto,
         GameOutputDto,
         // Lottery DTOs
-        CreateLotteryTicketDto,
         LotteryOutputDto,
-        LotteriesPurchaseDto,
+        // Purchase DTOs
+        CreatePurchaseDto,
+        CreateTicketDto,
+        PurchaseOutputDto,
+        TicketOutputDto,
         // Error DTOs
         Rfc7807Problem,
         ValidatorError,

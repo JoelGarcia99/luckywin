@@ -13,7 +13,10 @@ use crate::{
     config::state::AppState,
     domain::{
         enums::roles::Roles,
-        usecases::{close_game::CloseGameUseCase, create_game::CreateGameUseCase, get_last_active_game::GetLastActiveGameUseCase},
+        usecases::{
+            close_game::CloseGameUseCase, create_game::CreateGameUseCase,
+            get_last_active_game::GetLastActiveGameUseCase, reopen_game::ReopenGameUseCase,
+        },
     },
     shared::{
         errors::{Rfc7807Problem, StandardOutput},
@@ -23,7 +26,7 @@ use crate::{
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(get_last_active_game, create_game, close_game))]
+#[openapi(paths(get_last_active_game, create_game, close_game, reopen_game))]
 pub struct ApiDoc;
 
 /// Get the last active game
@@ -166,4 +169,62 @@ pub async fn close_game(
     let use_case = CloseGameUseCase::new(games_repo, Arc::clone(&state.db));
 
     use_case.execute(game_id).await
+}
+
+/// @admin Reopen a game
+///
+/// Reopens a closed game by setting finished_at to NULL (Admin only)
+#[utoipa::path(
+    post,
+    path = "/{game_id}/reopen",
+    tags = ["games"],
+    params(
+        ("game_id" = Uuid, Path, description = "ID of the game to reopen")
+    ),
+    responses(
+        (status = 200, description = "Game reopened successfully", body = GameOutputDto),
+        (status = 400, description = "Game already open", body = Rfc7807Problem),
+        (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem),
+        (status = 404, description = "Game not found", body = Rfc7807Problem)
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn reopen_game(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Path(game_id): Path<Uuid>,
+) -> StandardOutput<GameOutputDto> {
+    // Extract and validate access token
+    let access_token = headers
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| {
+            Box::new(Rfc7807Problem::unauthorized(
+                Some("Token de acceso requerido"),
+                Some("El header Authorization es requerido"),
+                Some("MISSING_ACCESS_TOKEN"),
+            ))
+        })?;
+
+    // Decode JWT and verify admin role
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
+
+    if payload.role != Roles::Admin.to_string() {
+        return Err(Box::new(Rfc7807Problem::unauthorized(
+            Some("Acceso denegado"),
+            Some("Solo los administradores pueden reabrir juegos"),
+            Some("ADMIN_ACCESS_REQUIRED"),
+        )));
+    }
+
+    // Instantiate repository
+    let games_repo = GamesRepoImpl;
+
+    // Create and execute use case
+    let use_case = ReopenGameUseCase::new(games_repo, Arc::clone(&state.db));
+
+    use_case.execute(&game_id).await
 }

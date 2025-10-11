@@ -14,13 +14,7 @@ pub struct Model {
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
     pub deleted_at: Option<DateTimeWithTimeZone>,
-    pub id_client: Uuid,
-    pub total_paid: i32,
-    pub client_name: String,
-    pub location: Option<String>,
-    pub cellphone: Option<String>,
-    pub email: Option<String>,
-    pub status: String,
+    pub id_purchase: Option<Uuid>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -34,13 +28,13 @@ pub enum Relation {
     )]
     Games,
     #[sea_orm(
-        belongs_to = "super::users::Entity",
-        from = "Column::IdClient",
-        to = "super::users::Column::Id",
+        belongs_to = "super::purchases::Entity",
+        from = "Column::IdPurchase",
+        to = "super::purchases::Column::Id",
         on_update = "NoAction",
         on_delete = "Cascade"
     )]
-    Users,
+    Purchases,
 }
 
 impl Related<super::games::Entity> for Entity {
@@ -49,9 +43,9 @@ impl Related<super::games::Entity> for Entity {
     }
 }
 
-impl Related<super::users::Entity> for Entity {
+impl Related<super::purchases::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Users.def()
+        Relation::Purchases.def()
     }
 }
 

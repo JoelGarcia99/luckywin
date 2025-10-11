@@ -5,6 +5,7 @@ pub mod prelude;
 pub mod games;
 pub mod games_metadata;
 pub mod lotteries;
+pub mod purchases;
 pub mod sessions;
 pub mod users;
 pub mod winners;

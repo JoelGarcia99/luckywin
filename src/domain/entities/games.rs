@@ -15,6 +15,7 @@ pub struct Model {
     pub deleted_at: Option<DateTimeWithTimeZone>,
     pub ticket_price: i32,
     pub max_tickets_per_lottery: i32,
+    pub closes_at: Option<DateTimeWithTimeZone>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -23,6 +24,8 @@ pub enum Relation {
     GamesMetadata,
     #[sea_orm(has_many = "super::lotteries::Entity")]
     Lotteries,
+    #[sea_orm(has_many = "super::purchases::Entity")]
+    Purchases,
     #[sea_orm(has_many = "super::winners::Entity")]
     Winners,
 }
@@ -36,6 +39,12 @@ impl Related<super::games_metadata::Entity> for Entity {
 impl Related<super::lotteries::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Lotteries.def()
+    }
+}
+
+impl Related<super::purchases::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Purchases.def()
     }
 }
 

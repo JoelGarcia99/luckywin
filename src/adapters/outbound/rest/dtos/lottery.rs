@@ -7,28 +7,20 @@ use crate::{domain::entities::lotteries, shared::utils::bitboards};
 #[derive(Debug, Serialize, ToSchema, Default)]
 pub struct LotteryOutputDto {
     pub id: Uuid,
-    pub client_name: String,
-    pub client_email: Option<String>,
-    pub client_cellphone: Option<String>,
-    pub location: Option<String>,
+    pub id_game: Uuid,
+    pub id_purchase: Option<Uuid>,
     pub serial: i64,
     /// Purchased numbers for lottery. Constrained to 5 numbers
     pub numbers: Vec<u8>,
     pub created_at: chrono::DateTime<chrono::Utc>,
-    pub total_paid: i32,
-    pub status: String, // TODO: use enum
 }
 
 impl From<lotteries::Model> for LotteryOutputDto {
     fn from(value: lotteries::Model) -> Self {
         Self {
             id: value.id,
-            client_name: value.client_name,
-            total_paid: value.total_paid,
-            status: value.status,
-            client_email: value.email,
-            client_cellphone: value.cellphone,
-            location: value.location,
+            id_game: value.id_game,
+            id_purchase: value.id_purchase,
             serial: value.serial,
             // WARN: this could lead to some bugs if it just returns empty array. Find a way to
             // handle it properly with Result instead

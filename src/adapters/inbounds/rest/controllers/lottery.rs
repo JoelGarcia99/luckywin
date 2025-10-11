@@ -11,21 +11,26 @@ use uuid::Uuid;
 
 use crate::{
     adapters::{
-        inbounds::rest::dtos::lottery::{
-            GetLotteriesByGameQueryParams, LotteriesPurchaseDto, MarkLotteryAsPaidQueryParams,
+        inbounds::rest::dtos::{
+            lottery::GetLotteriesByGameQueryParams,
+            purchase::{CreatePurchaseDto, MarkPurchaseAsPaidQueryParams},
         },
         outbound::{
-            db::{clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl},
-            rest::dtos::lottery::LotteryOutputDto,
+            db::{
+                clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl,
+                purchases::PurchasesRepoImpl,
+            },
+            rest::dtos::purchases::PurchaseOutputDto,
         },
     },
     config::state::AppState,
     domain::{
         enums::roles::Roles,
         usecases::{
-            get_lotteries_by_game::GetLotteriesByGameUseCase,
-            mark_lottery_as_paid::MarkLotteryAsPaidUseCase,
-            purchase_lottery::PurchaseLotteryUseCase,
+            create_purchase::CreatePurchaseUseCase,
+            get_purchases_by_game::GetPurchasesByGameUseCase,
+            mark_purchase_as_paid::MarkPurchaseAsPaidUseCase,
+            mark_purchase_as_unpaid::MarkPurchaseAsUnpaidUseCase,
         },
     },
     shared::{
@@ -36,26 +41,26 @@ use crate::{
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(purchase_lottery, mark_lottery_as_paid, get_lotteries_by_game))]
+#[openapi(paths(purchase_lottery, mark_lottery_as_paid, mark_lottery_as_unpaid, get_lotteries_by_game))]
 pub struct ApiDoc;
 
 /// Purchases lottery tickets
 ///
-/// Purchases many tickets for a given client
+/// Creates a purchase with multiple lottery tickets for a given client
 #[utoipa::path(
     post,
     path = "/purchase",
     tags = ["lottery"],
-    request_body(content = LotteriesPurchaseDto, content_type = "application/json"),
+    request_body(content = CreatePurchaseDto, content_type = "application/json"),
     responses(
-        (status = 201, description = "Lotteries purchased", body = Vec<LotteryOutputDto>),
-        (status = 400, description = "Error purchasing lotteries", body = Rfc7807Problem)
+        (status = 201, description = "Purchase created successfully", body = PurchaseOutputDto),
+        (status = 400, description = "Error creating purchase", body = Rfc7807Problem)
     )
 )]
 pub async fn purchase_lottery(
     State(state): State<Arc<AppState>>,
-    Json(body): Json<LotteriesPurchaseDto>,
-) -> StandardOutput<Vec<LotteryOutputDto>> {
+    Json(body): Json<CreatePurchaseDto>,
+) -> StandardOutput<PurchaseOutputDto> {
     tracing::debug!("Creating purchase");
     body.validate()
         .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
@@ -64,12 +69,14 @@ pub async fn purchase_lottery(
     let lotteries_repo = LotteriesRepoImpl;
     let games_repo = GamesRepoImpl;
     let clients_repo = ClientsRepoImpl;
+    let purchases_repo = PurchasesRepoImpl;
 
     // Create the use case with the repository implementations
-    let use_case = PurchaseLotteryUseCase::new(
+    let use_case = CreatePurchaseUseCase::new(
         lotteries_repo,
         games_repo,
         clients_repo,
+        purchases_repo,
         Arc::clone(&state.db),
     );
 
@@ -77,18 +84,18 @@ pub async fn purchase_lottery(
     use_case.execute(body).await
 }
 
-/// @admin Mark lottery as paid
+/// @admin Mark purchase as paid
 ///
-/// Marks a lottery ticket's status from pending to paid (Admin only)
+/// Marks a purchase's status from pending to paid (Admin only)
 #[utoipa::path(
     post,
     path = "/mark-as-paid",
     tags = ["lottery"],
-    params(MarkLotteryAsPaidQueryParams),
+    params(MarkPurchaseAsPaidQueryParams),
     responses(
-        (status = 200, description = "Lottery marked as paid successfully", body = LotteryOutputDto),
+        (status = 200, description = "Purchase marked as paid successfully", body = PurchaseOutputDto),
         (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem),
-        (status = 404, description = "Lottery not found", body = Rfc7807Problem)
+        (status = 404, description = "Purchase not found", body = Rfc7807Problem)
     ),
     security(
         ("bearer_auth" = [])
@@ -97,8 +104,8 @@ pub async fn purchase_lottery(
 pub async fn mark_lottery_as_paid(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
-    Query(params): Query<MarkLotteryAsPaidQueryParams>,
-) -> StandardOutput<LotteryOutputDto> {
+    Query(params): Query<MarkPurchaseAsPaidQueryParams>,
+) -> StandardOutput<PurchaseOutputDto> {
     // Extract and validate access token
     let access_token = headers
         .get("Authorization")
@@ -118,35 +125,89 @@ pub async fn mark_lottery_as_paid(
     if payload.role != Roles::Admin.to_string() {
         return Err(Box::new(Rfc7807Problem::unauthorized(
             Some("Acceso denegado"),
-            Some("Solo los administradores pueden marcar loterías como pagadas"),
+            Some("Solo los administradores pueden marcar compras como pagadas"),
             Some("ADMIN_ACCESS_REQUIRED"),
         )));
     }
 
     // Instantiate repository
-    let lotteries_repo = LotteriesRepoImpl;
+    let purchases_repo = PurchasesRepoImpl;
 
     // Create and execute use case
-    let use_case = MarkLotteryAsPaidUseCase::new(lotteries_repo, Arc::clone(&state.db));
+    let use_case = MarkPurchaseAsPaidUseCase::new(purchases_repo, Arc::clone(&state.db));
 
-    use_case.execute(params.lottery_id).await
+    use_case.execute(&params.purchase_id).await
 }
 
-/// @admin Get lottery tickets by game ID
+/// @admin Mark purchase as unpaid
 ///
-/// Fetches paginated lottery tickets for a specific game with optional serial filter (Admin only)
+/// Marks a purchase's status from paid back to pending (Admin only)
+#[utoipa::path(
+    post,
+    path = "/mark-as-unpaid",
+    tags = ["lottery"],
+    params(MarkPurchaseAsPaidQueryParams),
+    responses(
+        (status = 200, description = "Purchase marked as unpaid successfully", body = PurchaseOutputDto),
+        (status = 400, description = "Purchase already unpaid", body = Rfc7807Problem),
+        (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem),
+        (status = 404, description = "Purchase not found", body = Rfc7807Problem)
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn mark_lottery_as_unpaid(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Query(params): Query<MarkPurchaseAsPaidQueryParams>,
+) -> StandardOutput<PurchaseOutputDto> {
+    // Extract and validate access token
+    let access_token = headers
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| {
+            Box::new(Rfc7807Problem::unauthorized(
+                Some("Token de acceso requerido"),
+                Some("El header Authorization es requerido"),
+                Some("MISSING_ACCESS_TOKEN"),
+            ))
+        })?;
+
+    // Decode JWT and verify admin role
+    let payload = decode_jwt::<AccessTokenPayload>(access_token, &state.secrets, false)?;
+
+    if payload.role != Roles::Admin.to_string() {
+        return Err(Box::new(Rfc7807Problem::unauthorized(
+            Some("Acceso denegado"),
+            Some("Solo los administradores pueden marcar compras como no pagadas"),
+            Some("ADMIN_ACCESS_REQUIRED"),
+        )));
+    }
+
+    // Instantiate repository
+    let purchases_repo = PurchasesRepoImpl;
+
+    // Create and execute use case
+    let use_case = MarkPurchaseAsUnpaidUseCase::new(purchases_repo, Arc::clone(&state.db));
+
+    use_case.execute(&params.purchase_id).await
+}
+
+/// @admin Get purchases by game ID
+///
+/// Fetches paginated purchases with their lottery tickets for a specific game with optional serial filter (Admin only)
 #[utoipa::path(
     get,
     path = "/by-game/{game_id}",
     tags = ["lottery"],
     params(
-        ("game_id" = Uuid, Path, description = "ID of the game to fetch lottery tickets for"),
-        ("serial" = Option<String>, Query, description = "Filter by serial"),
-        ("page" = Option<u32>, Query, description = "Page number"),
-        ("page_size" = Option<u32>, Query, description = "Number of items per page"),
+        ("game_id" = Uuid, Path, description = "ID of the game to fetch purchases for"),
+        GetLotteriesByGameQueryParams
     ),
     responses(
-        (status = 200, description = "Lotteries fetched successfully", body = Vec<LotteryOutputDto>),
+        (status = 200, description = "Purchases fetched successfully", body = Vec<PurchaseOutputDto>),
         (status = 401, description = "Unauthorized - Admin access required", body = Rfc7807Problem),
         (status = 404, description = "Game not found", body = Rfc7807Problem)
     ),
@@ -159,7 +220,7 @@ pub async fn get_lotteries_by_game(
     headers: HeaderMap,
     Path(game_id): Path<Uuid>,
     Query(params): Query<GetLotteriesByGameQueryParams>,
-) -> StandardOutput<Vec<LotteryOutputDto>> {
+) -> StandardOutput<Vec<PurchaseOutputDto>> {
     // Extract and validate access token
     let access_token = headers
         .get("Authorization")
@@ -179,16 +240,16 @@ pub async fn get_lotteries_by_game(
     if payload.role != Roles::Admin.to_string() {
         return Err(Box::new(Rfc7807Problem::unauthorized(
             Some("Acceso denegado"),
-            Some("Solo los administradores pueden ver las loterías de un juego"),
+            Some("Solo los administradores pueden ver las compras de un juego"),
             Some("ADMIN_ACCESS_REQUIRED"),
         )));
     }
 
     // Instantiate repository
-    let lotteries_repo = LotteriesRepoImpl;
+    let purchases_repo = PurchasesRepoImpl;
 
     // Create and execute use case
-    let use_case = GetLotteriesByGameUseCase::new(lotteries_repo, Arc::clone(&state.db));
+    let use_case = GetPurchasesByGameUseCase::new(purchases_repo, Arc::clone(&state.db));
 
     use_case
         .execute(game_id, params.page, params.per_page, params.serial)

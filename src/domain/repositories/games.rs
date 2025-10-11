@@ -45,4 +45,9 @@ pub trait GamesRepo: Send + Sync + Copy {
     async fn close_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
     where
         C: ConnectionTrait;
+
+    /// Reopens a game by setting finished_at to NULL
+    async fn reopen_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
+    where
+        C: ConnectionTrait;
 }
