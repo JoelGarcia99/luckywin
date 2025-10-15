@@ -26,7 +26,14 @@ pub async fn send_html_to_gotenberg(html: &str, client: &Client) -> Result<Vec<u
     };
 
     // Construct the multipart form with the field "files" as expected by Gotenberg
-    let form = Form::new().part("files", part);
+    let form = Form::new()
+        .part("files", part)
+        .text("paperWidth", "3.15")
+        .text("paperHeight", "6.69")
+        .text("marginTop", "0")
+        .text("marginBottom", "0")
+        .text("marginLeft", "0")
+        .text("marginRight", "0");
 
     // Make the POST request with the multipart form
     let response = match client
