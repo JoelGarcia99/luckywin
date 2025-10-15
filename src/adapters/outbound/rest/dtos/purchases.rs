@@ -23,7 +23,7 @@ pub struct PurchaseOutputDto {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, ToSchema, FromQueryResult)]
+#[derive(Debug, Serialize, ToSchema, FromQueryResult, Clone)]
 pub struct TicketOutputDto {
     pub id: Uuid,
     pub serial: i64,

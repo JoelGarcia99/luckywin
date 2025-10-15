@@ -65,6 +65,9 @@ impl GetPurchaseTicketPdfUseCase {
             )));
         }
 
+        let mut tickets = purchase.tickets.clone();
+        tickets.sort_by_key(|t| t.serial);
+
         let context = LuckywinTicketContext {
             client_name: purchase.client_name.clone(),
             client_cellphone: purchase
@@ -77,7 +80,7 @@ impl GetPurchaseTicketPdfUseCase {
             purchase_date: format_datetime(purchase.created_at),
             game_closes_at: format_game_close(game.closes_at.map(|dt| dt.to_utc())),
             total_paid: format!("{:.2}", purchase.total_paid as f64 / 100.0),
-            number_sets: build_number_sets(&purchase.tickets),
+            number_sets: build_number_sets(&tickets),
         };
 
         let html = render_luckywin_ticket(&context);
@@ -114,13 +117,8 @@ fn format_serial(serial: i64) -> String {
 fn build_number_sets(tickets: &[TicketOutputDto]) -> Vec<LuckyNumberSet> {
     tickets
         .iter()
-        .enumerate()
-        .map(|(index, ticket)| LuckyNumberSet {
-            title: format!(
-                "Jugada #{:02} · Serial {}",
-                index + 1,
-                format_serial(ticket.serial)
-            ),
+        .map(|ticket| LuckyNumberSet {
+            title: format!("Serial {}", format_serial(ticket.serial)),
             digits: ticket
                 .numbers
                 .iter()
