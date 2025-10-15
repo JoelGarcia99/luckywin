@@ -118,7 +118,6 @@ fn build_number_sets(tickets: &[TicketOutputDto]) -> Vec<LuckyNumberSet> {
     tickets
         .iter()
         .map(|ticket| LuckyNumberSet {
-            title: format!("Serial {}", format_serial(ticket.serial)),
             digits: ticket
                 .numbers
                 .iter()

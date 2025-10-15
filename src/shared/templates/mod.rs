@@ -4,7 +4,6 @@ const TEMPLATE: &str = include_str!("luckywin_ticket.html");
 
 #[derive(Debug, Clone)]
 pub struct LuckyNumberSet {
-    pub title: String,
     pub digits: Vec<String>,
 }
 
@@ -40,17 +39,13 @@ fn build_number_sets_html(number_sets: &[LuckyNumberSet]) -> String {
     let mut html = String::new();
 
     for set in number_sets {
-        let _ = write!(
-            html,
-            r#"<div class="number-set"><span class="set-label">{}</span><div class="digits">"#,
-            escape_html(&set.title)
-        );
+        html.push_str(r#"<div class="number-set">"#);
 
         for digit in &set.digits {
-            let _ = write!(html, r#"<span class="digit">{}</span>"#, escape_html(digit));
+            let _ = write!(html, r#"<div class="digit">{}</div>"#, escape_html(digit));
         }
 
-        html.push_str("</div></div>");
+        html.push_str("</div>");
     }
 
     html
