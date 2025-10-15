@@ -1,2 +1,2 @@
-pub mod roles;
 pub mod lottery_status;
+pub mod roles;

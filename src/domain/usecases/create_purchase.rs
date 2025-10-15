@@ -1,7 +1,7 @@
 use std::{collections::HashSet, sync::Arc};
 
 use chrono::FixedOffset;
-use sea_orm::{prelude::Decimal, ActiveValue::Set, DatabaseConnection, TransactionTrait};
+use sea_orm::{ActiveValue::Set, DatabaseConnection, TransactionTrait, prelude::Decimal};
 use uuid::Uuid;
 
 use crate::{
@@ -19,7 +19,10 @@ use crate::{
             get_last_active_game::GetLastActiveGameUseCase, upsert_client::UpsertClientUseCase,
         },
     },
-    shared::{errors::{Rfc7807Problem, StandardOutput}, utils::bitboards},
+    shared::{
+        errors::{Rfc7807Problem, StandardOutput},
+        utils::bitboards,
+    },
 };
 
 /// Creates a new purchase with lottery tickets
@@ -173,17 +176,26 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone, R4: PurchasesRepo
         // Add tickets to purchase response
         purchase.tickets = created_tickets
             .into_iter()
-            .map(|t| crate::adapters::outbound::rest::dtos::purchases::TicketOutputDto {
-                id: t.id,
-                serial: t.serial,
-                numbers: t.numbers.into_iter().map(|n| n.to_string()).collect::<Vec<_>>().join(","),
-                created_at: t.created_at,
-                updated_at: t.created_at, // Use created_at since updated_at doesn't exist in LotteryOutputDto
-            })
+            .map(
+                |t| crate::adapters::outbound::rest::dtos::purchases::TicketOutputDto {
+                    id: t.id,
+                    serial: t.serial,
+                    numbers: t
+                        .numbers
+                        .into_iter()
+                        .map(|n| n.to_string())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    created_at: t.created_at,
+                    updated_at: t.created_at, // Use created_at since updated_at doesn't exist in LotteryOutputDto
+                },
+            )
             .collect();
 
         match txn.commit().await {
-            Ok(_) => Ok(crate::shared::errors::StandardResponse::simple(purchase, None)),
+            Ok(_) => Ok(crate::shared::errors::StandardResponse::simple(
+                purchase, None,
+            )),
             Err(e) => Err(process_db_err(&e)),
         }
     }

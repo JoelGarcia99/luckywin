@@ -3,8 +3,7 @@ use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::rest::dtos::client::ClientOutputDto,
-    domain::entities::users,
+    adapters::outbound::rest::dtos::client::ClientOutputDto, domain::entities::users,
     shared::errors::StandardOutput,
 };
 
@@ -35,7 +34,12 @@ pub trait ClientsRepo: Send + Sync + Copy {
     where
         C: ConnectionTrait;
 
-    async fn list_clients<C>(&self, db: &C, page: u64, per_page: u64) -> StandardOutput<Vec<ClientOutputDto>>
+    async fn list_clients<C>(
+        &self,
+        db: &C,
+        page: u64,
+        per_page: u64,
+    ) -> StandardOutput<Vec<ClientOutputDto>>
     where
         C: ConnectionTrait;
 }

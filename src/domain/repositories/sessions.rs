@@ -2,10 +2,7 @@ use async_trait::async_trait;
 use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
-use crate::{
-    domain::entities::sessions,
-    shared::errors::StandardOutput,
-};
+use crate::{domain::entities::sessions, shared::errors::StandardOutput};
 
 #[async_trait]
 pub trait SessionsRepo: Send + Sync + Copy {

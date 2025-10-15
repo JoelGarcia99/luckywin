@@ -8,10 +8,7 @@ use uuid::Uuid;
 use crate::{
     adapters::{
         inbounds::rest::dtos::user::UpdateUserDto,
-        outbound::{
-            db::users::UsersRepoImpl,
-            rest::dtos::users::UserOutputDto,
-        },
+        outbound::{db::users::UsersRepoImpl, rest::dtos::users::UserOutputDto},
     },
     domain::{entities::users, repositories::users::UsersRepo},
     shared::errors::{Rfc7807Problem, StandardOutput, StandardResponse},
@@ -47,12 +44,11 @@ impl UpdateCurrentUserUseCase {
                 ))
             })?;
 
-        let mut active_model = users::ActiveModel{
+        let mut active_model = users::ActiveModel {
             id: Set(user.id),
             updated_at: Set(Utc::now().into()),
             ..Default::default()
         };
-
 
         if let Some(first_name) = &dto.first_name {
             active_model.first_name = Set(first_name.clone());

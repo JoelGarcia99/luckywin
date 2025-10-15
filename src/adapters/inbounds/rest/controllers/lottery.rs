@@ -41,7 +41,12 @@ use crate::{
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(purchase_lottery, mark_lottery_as_paid, mark_lottery_as_unpaid, get_lotteries_by_game))]
+#[openapi(paths(
+    purchase_lottery,
+    mark_lottery_as_paid,
+    mark_lottery_as_unpaid,
+    get_lotteries_by_game
+))]
 pub struct ApiDoc;
 
 /// Purchases lottery tickets

@@ -11,7 +11,7 @@ pub struct GetLastActiveGameUseCase<'a, R: GamesRepo, C: ConnectionTrait> {
     db: &'a C,
 }
 
-impl<'a, R: GamesRepo, C: ConnectionTrait> GetLastActiveGameUseCase<'a ,R, C> {
+impl<'a, R: GamesRepo, C: ConnectionTrait> GetLastActiveGameUseCase<'a, R, C> {
     pub fn new(repo: R, db: &'a C) -> Self {
         Self { repo, db }
     }

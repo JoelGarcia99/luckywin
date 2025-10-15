@@ -10,7 +10,8 @@ use crate::{
         inbounds::rest::dtos::game::CreateGameDto, outbound::rest::dtos::game::GameOutputDto,
     },
     domain::{
-        entities::games, repositories::games::GamesRepo, usecases::get_last_active_game::GetLastActiveGameUseCase
+        entities::games, repositories::games::GamesRepo,
+        usecases::get_last_active_game::GetLastActiveGameUseCase,
     },
     shared::errors::{Rfc7807Problem, StandardOutput},
 };

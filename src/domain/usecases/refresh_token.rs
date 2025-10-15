@@ -13,8 +13,8 @@ use crate::{
     },
     shared::{
         errors::{
-            Rfc7807Problem, StandardOutput, StandardResponse, CANNOT_DECODE_TOKEN,
-            CANNOT_FIND_SESSION,
+            CANNOT_DECODE_TOKEN, CANNOT_FIND_SESSION, Rfc7807Problem, StandardOutput,
+            StandardResponse,
         },
         payloads::{AccessTokenPayload, RefreshTokenPayload},
         utils::{
@@ -26,7 +26,11 @@ use crate::{
 
 const CORRUPTED_SESSION_MSG: &str = "La sesión es inválida o ha expirado";
 
-pub struct RefreshTokenUseCase<UR: UsersRepo, SR: SessionsRepo, C: ConnectionTrait + TransactionTrait> {
+pub struct RefreshTokenUseCase<
+    UR: UsersRepo,
+    SR: SessionsRepo,
+    C: ConnectionTrait + TransactionTrait,
+> {
     users_repo: UR,
     sessions_repo: SR,
     db: Arc<C>,
@@ -54,8 +58,8 @@ impl<UR: UsersRepo + Clone, SR: SessionsRepo + Clone, C: ConnectionTrait + Trans
         user_agent: Option<&str>,
     ) -> StandardOutput<LoginOutputDto> {
         // Decode access token (bypass expiration since it might be expired)
-        let payload = decode_jwt::<AccessTokenPayload>(access_token, &self.secrets, true)
-            .map_err(|_| {
+        let payload =
+            decode_jwt::<AccessTokenPayload>(access_token, &self.secrets, true).map_err(|_| {
                 Box::new(Rfc7807Problem::unauthorized(
                     Some("No se pudo refrescar su sesión"),
                     None,

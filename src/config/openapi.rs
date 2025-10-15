@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get, Json};
+use axum::{Json, response::Html, routing::get};
 use utoipa::{
     Modify, OpenApi,
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
@@ -42,7 +42,7 @@ async fn openapi() -> Json<utoipa::openapi::OpenApi> {
 
 async fn build_scalar_html() -> Html<&'static str> {
     Html(
-r#"
+        r#"
 <!doctype html>
 <html>
 <head>
@@ -71,7 +71,7 @@ r#"
   </script>
 </body>
 </html>
-"#
+"#,
     )
 }
 

@@ -81,10 +81,7 @@ impl GamesRepo for GamesRepoImpl {
                 )
             })?;
 
-        Ok(StandardResponse::simple(
-            game.into(),
-            None,
-        ))
+        Ok(StandardResponse::simple(game.into(), None))
     }
 
     async fn get_last_active<C>(&self, db: &C) -> StandardOutput<GameOutputDto>
@@ -105,10 +102,7 @@ impl GamesRepo for GamesRepoImpl {
                 )
             })?;
 
-        Ok(StandardResponse::simple(
-            game.into(),
-            None,
-        ))
+        Ok(StandardResponse::simple(game.into(), None))
     }
 
     ///
@@ -168,12 +162,12 @@ impl GamesRepo for GamesRepoImpl {
         active_model.finished_at = Set(Some(chrono::Utc::now().into()));
         active_model.updated_at = Set(chrono::Utc::now().into());
 
-        let updated_game = active_model.update(db).await.map_err(|e| process_db_err(&e))?;
+        let updated_game = active_model
+            .update(db)
+            .await
+            .map_err(|e| process_db_err(&e))?;
 
-        Ok(StandardResponse::simple(
-            updated_game.into(),
-            None,
-        ))
+        Ok(StandardResponse::simple(updated_game.into(), None))
     }
 
     async fn reopen_game<C>(&self, game_id: &Uuid, db: &C) -> StandardOutput<GameOutputDto>
@@ -207,11 +201,11 @@ impl GamesRepo for GamesRepoImpl {
         active_model.finished_at = Set(None);
         active_model.updated_at = Set(chrono::Utc::now().into());
 
-        let updated_game = active_model.update(db).await.map_err(|e| process_db_err(&e))?;
+        let updated_game = active_model
+            .update(db)
+            .await
+            .map_err(|e| process_db_err(&e))?;
 
-        Ok(StandardResponse::simple(
-            updated_game.into(),
-            None,
-        ))
+        Ok(StandardResponse::simple(updated_game.into(), None))
     }
 }

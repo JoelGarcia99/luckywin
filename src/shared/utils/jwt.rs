@@ -1,9 +1,9 @@
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use serde::{de::DeserializeOwned, Serialize};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{
     config::env::SecretsVariables,
-    shared::errors::{Rfc7807Problem, CANNOT_DECODE_TOKEN, CANNOT_GENERATE_TOKEN},
+    shared::errors::{CANNOT_DECODE_TOKEN, CANNOT_GENERATE_TOKEN, Rfc7807Problem},
 };
 
 const CORRUPTED_SESSION_MSG: &str = "La sesión es inválida o ha expirado";

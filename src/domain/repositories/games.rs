@@ -3,18 +3,13 @@ use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::rest::dtos::game::GameOutputDto,
-    domain::entities::games,
+    adapters::outbound::rest::dtos::game::GameOutputDto, domain::entities::games,
     shared::errors::StandardOutput,
 };
 
 #[async_trait]
 pub trait GamesRepo: Send + Sync + Copy {
-    async fn create<C>(
-        &self,
-        game: &games::ActiveModel,
-        db: &C,
-    ) -> StandardOutput<GameOutputDto>
+    async fn create<C>(&self, game: &games::ActiveModel, db: &C) -> StandardOutput<GameOutputDto>
     where
         C: ConnectionTrait;
 
@@ -37,7 +32,11 @@ pub trait GamesRepo: Send + Sync + Copy {
     where
         C: ConnectionTrait;
 
-    async fn get_batch_by_ids<C>(&self, db: &C, ids: &Vec<Uuid>) -> StandardOutput<Vec<GameOutputDto>>
+    async fn get_batch_by_ids<C>(
+        &self,
+        db: &C,
+        ids: &Vec<Uuid>,
+    ) -> StandardOutput<Vec<GameOutputDto>>
     where
         C: ConnectionTrait;
 

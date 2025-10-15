@@ -8,7 +8,10 @@ use uuid::Uuid;
 pub struct UpdateUserDto {
     #[validate(min_length = 2, message = "El nombre debe tener al menos 2 caracteres")]
     pub first_name: Option<String>,
-    #[validate(min_length = 2, message = "El apellido debe tener al menos 2 caracteres")]
+    #[validate(
+        min_length = 2,
+        message = "El apellido debe tener al menos 2 caracteres"
+    )]
     pub last_name: Option<String>,
     pub location: Option<String>,
     // TODO: implement custom validator for phone

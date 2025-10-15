@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
-use axum::{extract::{Path, State}, http::HeaderMap, Json};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::HeaderMap,
+};
 use serde_valid::Validate;
 use utoipa::OpenApi;
 use uuid::Uuid;

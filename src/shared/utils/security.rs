@@ -1,6 +1,6 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use rand::distributions::{Distribution, Uniform};
 
@@ -8,8 +8,7 @@ use crate::shared::errors::Rfc7807Problem;
 
 const SPECIALS: &[u8] = b"!@#$%^&*()_+-=[]{}|;:',.<>?/";
 const MIN_LENGTH: usize = 8;
-const WEAK_PASSWORD_MESSAGE: &str =
-    "La contraseña debe tener al menos 8 caracteres, mayúsculas, minúsculas, caracteres especiales y números";
+const WEAK_PASSWORD_MESSAGE: &str = "La contraseña debe tener al menos 8 caracteres, mayúsculas, minúsculas, caracteres especiales y números";
 
 /// Hashes a password using Argon2i with the configured salt rounds
 pub fn hash_password(password: &str) -> Result<String, Box<Rfc7807Problem>> {

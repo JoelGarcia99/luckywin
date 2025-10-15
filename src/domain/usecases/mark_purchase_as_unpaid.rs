@@ -4,7 +4,9 @@ use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::{db::purchases::PurchasesRepoImpl, rest::dtos::purchases::PurchaseOutputDto},
+    adapters::outbound::{
+        db::purchases::PurchasesRepoImpl, rest::dtos::purchases::PurchaseOutputDto,
+    },
     domain::repositories::purchases::PurchasesRepo,
     shared::errors::{Rfc7807Problem, StandardOutput, StandardResponse},
 };
@@ -21,7 +23,8 @@ impl MarkPurchaseAsUnpaidUseCase {
 
     pub async fn execute(&self, purchase_id: &Uuid) -> StandardOutput<PurchaseOutputDto> {
         // Find the purchase
-        let purchase = self.purchases_repo
+        let purchase = self
+            .purchases_repo
             .find_by_id(purchase_id, &*self.db)
             .await?
             .data
@@ -43,9 +46,9 @@ impl MarkPurchaseAsUnpaidUseCase {
 
         // Use the existing mark_as_paid implementation but manually update to pending
         // We'll need to add a new method to the repo for this
-        use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
-        use crate::domain::entities::purchases;
         use crate::adapters::outbound::db::error_parsing::process_db_err;
+        use crate::domain::entities::purchases;
+        use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 
         let purchase_entity = purchases::Entity::find_by_id(*purchase_id)
             .filter(purchases::Column::DeletedAt.is_null())

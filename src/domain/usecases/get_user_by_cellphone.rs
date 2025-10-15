@@ -8,26 +8,26 @@ use crate::{
     shared::errors::{Rfc7807Problem, StandardOutput, StandardResponse},
 };
 
-pub struct GetUserByEmailUseCase {
+pub struct GetUserByCellphoneUseCase {
     users_repo: UsersRepoImpl,
     db: Arc<DatabaseConnection>,
 }
 
-impl GetUserByEmailUseCase {
+impl GetUserByCellphoneUseCase {
     pub fn new(users_repo: UsersRepoImpl, db: Arc<DatabaseConnection>) -> Self {
         Self { users_repo, db }
     }
 
-    pub async fn execute(&self, email: &str) -> StandardOutput<UserOutputDto> {
+    pub async fn execute(&self, cellphone: &str) -> StandardOutput<UserOutputDto> {
         let user = self
             .users_repo
-            .find_by_email(email, &*self.db)
+            .find_by_cellphone(cellphone, &*self.db)
             .await?
             .data
             .ok_or_else(|| {
                 Box::new(Rfc7807Problem::not_found(
                     Some("Usuario no encontrado"),
-                    Some("No existe un usuario con el email proporcionado"),
+                    Some("No existe un usuario con el celular proporcionado"),
                 ))
             })?;
 

@@ -2,20 +2,13 @@ use async_trait::async_trait;
 use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
-use crate::{
-    domain::entities::users,
-    shared::errors::StandardOutput,
-};
+use crate::{domain::entities::users, shared::errors::StandardOutput};
 
 #[async_trait]
 pub trait UsersRepo: Send + Sync + Copy {
     /// Finds a user by email address
     /// Returns None if user is not found or has been soft-deleted
-    async fn find_by_email<C>(
-        &self,
-        email: &str,
-        db: &C,
-    ) -> StandardOutput<Option<users::Model>>
+    async fn find_by_email<C>(&self, email: &str, db: &C) -> StandardOutput<Option<users::Model>>
     where
         C: ConnectionTrait;
 
@@ -31,11 +24,7 @@ pub trait UsersRepo: Send + Sync + Copy {
 
     /// Finds a user by ID
     /// Returns None if user is not found or has been soft-deleted
-    async fn find_by_id<C>(
-        &self,
-        id: &Uuid,
-        db: &C,
-    ) -> StandardOutput<Option<users::Model>>
+    async fn find_by_id<C>(&self, id: &Uuid, db: &C) -> StandardOutput<Option<users::Model>>
     where
         C: ConnectionTrait;
 

@@ -27,4 +27,3 @@ pub async fn connect_db(secrets: &crate::config::env::SecretsVariables) -> Arc<D
 
     db
 }
-

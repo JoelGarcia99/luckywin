@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::{Query, State}, http::HeaderMap};
+use axum::{
+    Json,
+    extract::{Query, State},
+    http::HeaderMap,
+};
 use serde::Deserialize;
 use utoipa::{IntoParams, OpenApi};
 
@@ -13,7 +17,9 @@ use crate::{
     domain::{
         enums::roles::Roles,
         usecases::{
-            get_current_user::GetCurrentUserUseCase, get_user_by_email::GetUserByEmailUseCase, update_current_user::UpdateCurrentUserUseCase,
+            get_current_user::GetCurrentUserUseCase,
+            get_user_by_cellphone::GetUserByCellphoneUseCase,
+            update_current_user::UpdateCurrentUserUseCase,
         },
     },
     shared::{
@@ -25,14 +31,14 @@ use crate::{
 
 #[derive(Debug, Deserialize, IntoParams)]
 #[into_params(parameter_in=Query)]
-pub struct GetUserByEmailQueryParams {
-    /// User email to search for
+pub struct GetUserByCellphoneQueryParams {
+    /// User cellphone number to search for
     #[param(inline)]
-    pub email: String,
+    pub cellphone: String,
 }
 
 #[derive(OpenApi)]
-#[openapi(paths(get_current_user, update_current_user, get_user_by_email))]
+#[openapi(paths(get_current_user, update_current_user, get_user_by_cellphone))]
 pub struct ApiDoc;
 
 /// @admin Get current user in session
@@ -128,25 +134,25 @@ pub async fn update_current_user(
     use_case.execute(&payload.sub, &dto).await
 }
 
-/// Get user by email
+/// Get user by cellphone
 ///
-/// Retrieves user information by email address (public endpoint - no authentication required)
+/// Retrieves user information by cellphone number (public endpoint - no authentication required)
 #[utoipa::path(
     get,
-    path = "/by-email",
+    path = "/by-cellphone",
     tags = ["users"],
-    params(GetUserByEmailQueryParams),
+    params(GetUserByCellphoneQueryParams),
     responses(
         (status = 200, description = "User retrieved successfully", body = UserOutputDto),
         (status = 404, description = "User not found", body = Rfc7807Problem)
     )
 )]
-pub async fn get_user_by_email(
+pub async fn get_user_by_cellphone(
     State(state): State<Arc<AppState>>,
-    Query(params): Query<GetUserByEmailQueryParams>,
+    Query(params): Query<GetUserByCellphoneQueryParams>,
 ) -> StandardOutput<UserOutputDto> {
     let users_repo = UsersRepoImpl;
-    let use_case = GetUserByEmailUseCase::new(users_repo, Arc::clone(&state.db));
+    let use_case = GetUserByCellphoneUseCase::new(users_repo, Arc::clone(&state.db));
 
-    use_case.execute(&params.email).await
+    use_case.execute(&params.cellphone).await
 }

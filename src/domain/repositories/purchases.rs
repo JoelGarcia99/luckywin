@@ -2,8 +2,7 @@ use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::rest::dtos::purchases::PurchaseOutputDto,
-    shared::errors::StandardOutput,
+    adapters::outbound::rest::dtos::purchases::PurchaseOutputDto, shared::errors::StandardOutput,
 };
 
 #[async_trait::async_trait]

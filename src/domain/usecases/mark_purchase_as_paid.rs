@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     adapters::outbound::rest::dtos::purchases::PurchaseOutputDto,
-    domain::repositories::purchases::PurchasesRepo,
-    shared::errors::StandardOutput,
+    domain::repositories::purchases::PurchasesRepo, shared::errors::StandardOutput,
 };
 
 pub struct MarkPurchaseAsPaidUseCase<R: PurchasesRepo> {
@@ -20,6 +19,8 @@ impl<R: PurchasesRepo> MarkPurchaseAsPaidUseCase<R> {
     }
 
     pub async fn execute(&self, purchase_id: &Uuid) -> StandardOutput<PurchaseOutputDto> {
-        self.purchases_repo.mark_as_paid(purchase_id, &*self.db).await
+        self.purchases_repo
+            .mark_as_paid(purchase_id, &*self.db)
+            .await
     }
 }

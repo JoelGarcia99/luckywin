@@ -42,17 +42,19 @@ pub fn process_db_err(err: &DbErr) -> Box<Rfc7807Problem> {
                     Some("UNIQUE_CONSTRAINT_VIOLATION"),
                 ))
             }
-            _ => {
-                Box::new(Rfc7807Problem::server_error(
-                    None,
-                    Some(&err.to_string()),
-                    Some("CRITICAL_DATABASE_ERROR"),
-                ))
-            }
+            _ => Box::new(Rfc7807Problem::server_error(
+                None,
+                Some(&err.to_string()),
+                Some("CRITICAL_DATABASE_ERROR"),
+            )),
         };
     }
 
     // If no SQL error is present it's likely a critical server error so we
     // have to let the user know it so he can reach IT
-    Box::new(Rfc7807Problem::server_error(None, None, Some("CRITICAL_DATABASE_ERROR")))
+    Box::new(Rfc7807Problem::server_error(
+        None,
+        None,
+        Some("CRITICAL_DATABASE_ERROR"),
+    ))
 }

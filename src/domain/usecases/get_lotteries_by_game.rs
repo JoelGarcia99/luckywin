@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     adapters::outbound::rest::dtos::lottery::LotteryOutputDto,
-    domain::repositories::lotteries::LotteriesRepo,
-    shared::errors::StandardOutput,
+    domain::repositories::lotteries::LotteriesRepo, shared::errors::StandardOutput,
 };
 
 const DEFAULT_PAGE: u64 = 0;

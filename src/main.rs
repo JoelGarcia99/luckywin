@@ -6,9 +6,9 @@ use tower_http::{cors::CorsLayer, normalize_path::NormalizePathLayer};
 use crate::config::{db::connect_db, tracing::build_tracing};
 
 pub mod adapters;
-pub mod shared;
 pub mod config;
 pub mod domain;
+pub mod shared;
 
 #[tokio::main]
 async fn main() {
@@ -21,7 +21,7 @@ async fn main() {
 
     let state = Arc::new(config::state::AppState {
         secrets: Arc::clone(&secrets),
-        db: connect_db(&secrets).await
+        db: connect_db(&secrets).await,
     });
 
     // defining app router

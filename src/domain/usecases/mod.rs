@@ -6,7 +6,7 @@ pub mod get_current_user;
 pub mod get_last_active_game;
 pub mod get_lotteries_by_game;
 pub mod get_purchases_by_game;
-pub mod get_user_by_email;
+pub mod get_user_by_cellphone;
 pub mod login;
 pub mod logout;
 // Deprecated: use mark_purchase_as_paid instead

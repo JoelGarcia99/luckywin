@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -271,7 +271,7 @@ impl Rfc7807Problem {
                     Some("Ha ocurrido un error procesando sus datos"),
                     Some(&e.to_string()),
                     None,
-                )
+                );
             }
         };
 

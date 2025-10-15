@@ -1,20 +1,20 @@
 use std::sync::Arc;
 
-use axum::{
-    extract::State,
-    http::HeaderMap,
-    Json,
-};
+use axum::{Json, extract::State, http::HeaderMap};
 use serde_valid::Validate;
 use utoipa::OpenApi;
 
 use crate::{
     adapters::{
-        inbounds::rest::dtos::auth::{LoginInputDto, LoginOutputDto, LogoutOutputDto, RefreshTokenInputDto},
+        inbounds::rest::dtos::auth::{
+            LoginInputDto, LoginOutputDto, LogoutOutputDto, RefreshTokenInputDto,
+        },
         outbound::db::{sessions::SessionsRepoImpl, users::UsersRepoImpl},
     },
     config::state::AppState,
-    domain::usecases::{login::LoginUseCase, logout::LogoutUseCase, refresh_token::RefreshTokenUseCase},
+    domain::usecases::{
+        login::LoginUseCase, logout::LogoutUseCase, refresh_token::RefreshTokenUseCase,
+    },
     shared::{
         errors::{Rfc7807Problem, StandardOutput},
         payloads::AccessTokenPayload,
@@ -59,9 +59,7 @@ pub async fn login(
         .or_else(|| headers.get("X-Real-IP"))
         .and_then(|v| v.to_str().ok());
 
-    let user_agent = headers
-        .get("User-Agent")
-        .and_then(|v| v.to_str().ok());
+    let user_agent = headers.get("User-Agent").and_then(|v| v.to_str().ok());
 
     // Instantiate repositories
     let users_repo = UsersRepoImpl;
@@ -129,9 +127,7 @@ pub async fn refresh_token(
         .or_else(|| headers.get("X-Real-IP"))
         .and_then(|v| v.to_str().ok());
 
-    let user_agent = headers
-        .get("User-Agent")
-        .and_then(|v| v.to_str().ok());
+    let user_agent = headers.get("User-Agent").and_then(|v| v.to_str().ok());
 
     // Instantiate repositories
     let users_repo = UsersRepoImpl;

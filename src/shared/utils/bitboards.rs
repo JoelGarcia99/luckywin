@@ -15,7 +15,10 @@ pub fn parse_vec_into_bitboard(vec: Vec<u8>) -> Decimal {
 pub fn parse_bitboard_into_vec(bitboard: Decimal) -> Result<Vec<u8>, String> {
     let mut vec = Vec::new();
     // ensuring purity
-    let mut bitboard = bitboard.to_string().parse::<u128>().map_err(|e| e.to_string())?;
+    let mut bitboard = bitboard
+        .to_string()
+        .parse::<u128>()
+        .map_err(|e| e.to_string())?;
 
     while bitboard > 0 {
         let num = bitboard.trailing_zeros();

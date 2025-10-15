@@ -25,12 +25,7 @@ impl GetCurrentUserUseCase {
             .find_by_id(user_id, &*self.db)
             .await?
             .data
-            .ok_or_else(|| {
-                Box::new(Rfc7807Problem::not_found(
-                    Some("User not found"),
-                    None,
-                ))
-            })?;
+            .ok_or_else(|| Box::new(Rfc7807Problem::not_found(Some("User not found"), None)))?;
 
         Ok(StandardResponse::simple(user.into(), None))
     }

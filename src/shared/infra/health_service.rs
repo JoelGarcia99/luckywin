@@ -1,6 +1,9 @@
 use sea_orm::DatabaseConnection;
 
-use crate::{adapters::outbound::db::error_parsing::process_db_err, shared::errors::{StandardOutput, StandardResponse}};
+use crate::{
+    adapters::outbound::db::error_parsing::process_db_err,
+    shared::errors::{StandardOutput, StandardResponse},
+};
 
 /// Checks if infra is ok, including DB and tracin
 pub async fn check_health(db: &DatabaseConnection) -> StandardOutput<String> {

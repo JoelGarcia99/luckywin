@@ -95,11 +95,12 @@ impl LotteriesRepo for LotteriesRepoImpl {
         let total_records_promise = paginator.num_items();
         let data_promise = paginator.fetch_page(page);
 
-        let (total_records, lotteries_data) = match tokio::join!(total_records_promise, data_promise) {
-            (Ok(total), Ok(data)) => (total, data),
-            (Err(e), _) => return Err(process_db_err(&e)),
-            (_, Err(e)) => return Err(process_db_err(&e)),
-        };
+        let (total_records, lotteries_data) =
+            match tokio::join!(total_records_promise, data_promise) {
+                (Ok(total), Ok(data)) => (total, data),
+                (Err(e), _) => return Err(process_db_err(&e)),
+                (_, Err(e)) => return Err(process_db_err(&e)),
+            };
 
         // Convert to DTOs
         let dtos = lotteries_data

@@ -4,8 +4,7 @@ use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::rest::dtos::game::GameOutputDto,
-    domain::repositories::games::GamesRepo,
+    adapters::outbound::rest::dtos::game::GameOutputDto, domain::repositories::games::GamesRepo,
     shared::errors::StandardOutput,
 };
 

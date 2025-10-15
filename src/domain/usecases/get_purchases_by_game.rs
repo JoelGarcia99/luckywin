@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     adapters::outbound::rest::dtos::purchases::PurchaseOutputDto,
-    domain::repositories::purchases::PurchasesRepo,
-    shared::errors::StandardOutput,
+    domain::repositories::purchases::PurchasesRepo, shared::errors::StandardOutput,
 };
 
 const DEFAULT_PAGE: u64 = 0;
@@ -20,10 +19,7 @@ pub struct GetPurchasesByGameUseCase<R: PurchasesRepo> {
 
 impl<R: PurchasesRepo> GetPurchasesByGameUseCase<R> {
     pub fn new(purchases_repo: R, db: Arc<DatabaseConnection>) -> Self {
-        Self {
-            purchases_repo,
-            db,
-        }
+        Self { purchases_repo, db }
     }
 
     pub async fn execute(
