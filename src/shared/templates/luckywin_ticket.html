@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Luckywin Ticket</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
         @page {
             size: 80mm 170mm;
@@ -16,36 +16,40 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
         }
 
         .ticket {
             width: 95%;
             height: 95%;
             margin: auto;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f2f5 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
         }
 
         .header {
             text-align: center;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .brand {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            color: #000;
+            color: #2c5282;
             letter-spacing: 2px;
         }
 
         .game-name {
-            font-size: 10px;
-            color: #666;
+            font-size: 12px;
+            color: #718096;
         }
 
         .numbers-section {
@@ -54,46 +58,49 @@
 
         .numbers-title {
             text-align: center;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            color: #2c5282;
         }
 
         .number-sets {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .number-set {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            padding: 6px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
         }
 
         .digit {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
+            color: #2d3748;
         }
 
         .info-section {
             display: flex;
             justify-content: space-between;
-            font-size: 8px;
-            color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 5px;
+            font-size: 10px;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
         }
 
         .footer {
             text-align: center;
-            font-size: 7px;
-            color: #666;
+            font-size: 8px;
+            color: #a0aec0;
             margin-top: auto;
-            padding-top: 5px;
+            padding-top: 10px;
         }
     </style>
 </head>
