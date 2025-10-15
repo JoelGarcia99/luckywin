@@ -8,7 +8,7 @@ pub struct ClientOutputDto {
     pub id: Uuid,
     pub name: String,
     pub last_name: Option<String>,
-    pub email: String,
+    pub email: Option<String>,
     pub cellphone: String,
     pub location: Option<String>,
 }

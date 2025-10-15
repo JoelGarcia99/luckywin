@@ -62,3 +62,12 @@ pub struct GetLotteriesByGameQueryParams {
     #[serde(default)]
     pub serial: Option<String>,
 }
+
+#[derive(Debug, Validate, Deserialize, IntoParams)]
+pub struct LotteryByUserQueryParams {
+    #[validate(
+        pattern = r#"^(?:\+593\s?9\d{8}|09\d{8})$"#,
+        message = "El número de celular no es válido"
+    )]
+    pub phone: String,
+}

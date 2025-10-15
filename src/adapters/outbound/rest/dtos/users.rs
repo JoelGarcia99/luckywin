@@ -12,7 +12,7 @@ pub struct UserOutputDto {
     pub last_name: Option<String>,
     pub location: Option<String>,
     pub cellphone: String,
-    pub email: String,
+    pub email: Option<String>,
     pub role: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

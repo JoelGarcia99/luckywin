@@ -1,13 +1,23 @@
 use async_trait::async_trait;
-use sea_orm::{ColumnTrait, ConnectionTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, RelationTrait,
+};
 use uuid::Uuid;
 
 use crate::{
     adapters::outbound::{
-        db::error_parsing::process_db_err, rest::dtos::lottery::LotteryOutputDto,
+        db::error_parsing::process_db_err,
+        rest::dtos::{lottery::LotteryOutputDto, purchases::TicketOutputDto},
     },
-    domain::{entities::lotteries, repositories::lotteries::LotteriesRepo},
-    shared::errors::{PaginatorResponse, StandardOutput, StandardResponse},
+    domain::{
+        entities::{lotteries, purchases},
+        repositories::lotteries::LotteriesRepo,
+    },
+    shared::{
+        errors::{PaginatorResponse, StandardOutput, StandardResponse},
+        utils::bitboards,
+    },
 };
 
 #[derive(Clone, Copy)]
@@ -111,5 +121,36 @@ impl LotteriesRepo for LotteriesRepoImpl {
         let paginator = PaginatorResponse::new(total_records, page, per_page);
 
         Ok(StandardResponse::with_paginator(dtos, paginator, None))
+    }
+
+    async fn find_tickets_by_user<C>(
+        &self,
+        id_user: &Uuid,
+        id_game: &Uuid,
+        db: &C,
+    ) -> StandardOutput<Vec<TicketOutputDto>>
+    where
+        C: ConnectionTrait,
+    {
+        tracing::debug!("Finding tickets by user");
+        let tickets_raw = lotteries::Entity::find()
+            .join(JoinType::InnerJoin, lotteries::Relation::Purchases.def())
+            .filter(purchases::Column::IdClient.eq(*id_user))
+            .filter(lotteries::Column::IdGame.eq(*id_game))
+            .filter(lotteries::Column::DeletedAt.is_null())
+            .filter(purchases::Column::DeletedAt.is_null())
+            .all(db)
+            .await
+            .map_err(|e| {
+                tracing::error!("Error finding tickets by user: {:#?}", e);
+                process_db_err(&e)
+            })?;
+
+        let tickets = tickets_raw
+            .into_iter()
+            .map(|lottery| lottery.into())
+            .collect::<Vec<TicketOutputDto>>();
+
+        Ok(StandardResponse::simple(tickets, None))
     }
 }

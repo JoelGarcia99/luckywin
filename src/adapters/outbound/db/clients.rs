@@ -137,12 +137,16 @@ impl ClientsRepo for ClientsRepoImpl {
         ))
     }
 
-    async fn get_client_by_email<C>(&self, email: &str, db: &C) -> StandardOutput<ClientOutputDto>
+    async fn get_client_by_cellphone<C>(
+        &self,
+        cellphone: &str,
+        db: &C,
+    ) -> StandardOutput<ClientOutputDto>
     where
         C: ConnectionTrait,
     {
         let client = Entity::find()
-            .filter(Column::Email.eq(email))
+            .filter(Column::Cellphone.eq(cellphone))
             .filter(Column::DeletedAt.is_null())
             .one(db)
             .await

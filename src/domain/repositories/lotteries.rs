@@ -3,7 +3,8 @@ use sea_orm::ConnectionTrait;
 use uuid::Uuid;
 
 use crate::{
-    adapters::outbound::rest::dtos::lottery::LotteryOutputDto, domain::entities::lotteries,
+    adapters::outbound::rest::dtos::{lottery::LotteryOutputDto, purchases::TicketOutputDto},
+    domain::entities::lotteries,
     shared::errors::StandardOutput,
 };
 
@@ -36,6 +37,16 @@ pub trait LotteriesRepo: Send + Sync {
         serial_filter: Option<i64>,
         db: &C,
     ) -> StandardOutput<Vec<LotteryOutputDto>>
+    where
+        C: ConnectionTrait;
+
+    /// Retrieves all the tickets from users for the current game
+    async fn find_tickets_by_user<C>(
+        &self,
+        id_user: &Uuid,
+        id_game: &Uuid,
+        db: &C,
+    ) -> StandardOutput<Vec<TicketOutputDto>>
     where
         C: ConnectionTrait;
 }

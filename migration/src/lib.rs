@@ -19,6 +19,7 @@ mod m20251011_061042_create_purchases_table_and_restructure;
 mod m20251011_064042_make_purchase_serial_auto_increment;
 mod m20251011_070011_add_missing_indexes;
 mod m20251011_172622_closes_at_to_game;
+mod m20251015_074524_email_optional;
 
 pub struct Migrator;
 
@@ -45,6 +46,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251011_064042_make_purchase_serial_auto_increment::Migration),
             Box::new(m20251011_070011_add_missing_indexes::Migration),
             Box::new(m20251011_172622_closes_at_to_game::Migration),
+            Box::new(m20251015_074524_email_optional::Migration),
         ]
     }
 }

@@ -14,7 +14,10 @@ use crate::{
         entities::{lotteries, purchases},
         repositories::purchases::PurchasesRepo,
     },
-    shared::errors::{PaginatorResponse, Rfc7807Problem, StandardOutput, StandardResponse},
+    shared::{
+        errors::{PaginatorResponse, Rfc7807Problem, StandardOutput, StandardResponse},
+        utils::bitboards,
+    },
 };
 
 #[derive(Clone, Copy)]
@@ -115,7 +118,8 @@ impl PurchasesRepo for PurchasesRepoImpl {
                             .map(|t| TicketOutputDto {
                                 id: t.id,
                                 serial: t.serial,
-                                numbers: t.numbers.to_string(),
+                                numbers: bitboards::parse_bitboard_into_vec(t.numbers)
+                                    .unwrap_or_default(),
                                 created_at: t.created_at.into(),
                                 updated_at: t.updated_at.into(),
                             })
@@ -189,7 +193,7 @@ impl PurchasesRepo for PurchasesRepoImpl {
                     .map(|t| TicketOutputDto {
                         id: t.id,
                         serial: t.serial,
-                        numbers: t.numbers.to_string(),
+                        numbers: bitboards::parse_bitboard_into_vec(t.numbers).unwrap_or_default(),
                         created_at: t.created_at.into(),
                         updated_at: t.updated_at.into(),
                     })
@@ -266,7 +270,7 @@ impl PurchasesRepo for PurchasesRepoImpl {
                     .map(|t| TicketOutputDto {
                         id: t.id,
                         serial: t.serial,
-                        numbers: t.numbers.to_string(),
+                        numbers: bitboards::parse_bitboard_into_vec(t.numbers).unwrap_or_default(),
                         created_at: t.created_at.into(),
                         updated_at: t.updated_at.into(),
                     })

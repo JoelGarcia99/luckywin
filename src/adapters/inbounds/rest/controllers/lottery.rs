@@ -2,8 +2,13 @@ use std::sync::Arc;
 
 use axum::{
     Json,
+    body::Body,
     extract::{Path, Query, State},
-    http::HeaderMap,
+    http::{
+        HeaderMap, StatusCode,
+        header::{CONTENT_DISPOSITION, CONTENT_TYPE},
+    },
+    response::Response,
 };
 use serde_valid::Validate;
 use utoipa::OpenApi;
@@ -12,15 +17,15 @@ use uuid::Uuid;
 use crate::{
     adapters::{
         inbounds::rest::dtos::{
-            lottery::GetLotteriesByGameQueryParams,
+            lottery::{GetLotteriesByGameQueryParams, LotteryByUserQueryParams},
             purchase::{CreatePurchaseDto, MarkPurchaseAsPaidQueryParams},
         },
         outbound::{
             db::{
                 clients::ClientsRepoImpl, games::GamesRepoImpl, lotteries::LotteriesRepoImpl,
-                purchases::PurchasesRepoImpl,
+                purchases::PurchasesRepoImpl, users::UsersRepoImpl,
             },
-            rest::dtos::purchases::PurchaseOutputDto,
+            rest::dtos::purchases::{PurchaseOutputDto, TicketOutputDto},
         },
     },
     config::state::AppState,
@@ -28,7 +33,9 @@ use crate::{
         enums::roles::Roles,
         usecases::{
             create_purchase::CreatePurchaseUseCase,
+            get_purchase_ticket_pdf::GetPurchaseTicketPdfUseCase,
             get_purchases_by_game::GetPurchasesByGameUseCase,
+            get_tickets_for_user::GetTicketsForUser,
             mark_purchase_as_paid::MarkPurchaseAsPaidUseCase,
             mark_purchase_as_unpaid::MarkPurchaseAsUnpaidUseCase,
         },
@@ -45,9 +52,50 @@ use crate::{
     purchase_lottery,
     mark_lottery_as_paid,
     mark_lottery_as_unpaid,
-    get_lotteries_by_game
+    get_lotteries_by_game,
+    get_lotteries_by_user,
+    get_purchase_ticket_pdf
 ))]
 pub struct ApiDoc;
+
+/// Get all tickets by user
+///
+/// Gets all the purchased tickets for the current active game (if any) for the given user filtered
+/// by phone
+#[utoipa::path(
+    get,
+    path = "/by-user",
+    tags = ["lottery"],
+    responses(
+        (status = 201, description = "Purchase created successfully", body = Vec<TicketOutputDto>),
+        (status = 400, description = "Error creating purchase", body = Rfc7807Problem)
+    ),
+    params(
+        ("phone" = String, Query, description = "Phone number of the client")
+    )
+)]
+pub async fn get_lotteries_by_user(
+    State(state): State<Arc<AppState>>,
+    Query(query): Query<LotteryByUserQueryParams>,
+) -> StandardOutput<Vec<TicketOutputDto>> {
+    let users_repo = UsersRepoImpl;
+    let games_repo = GamesRepoImpl;
+    let lotteries_repo = LotteriesRepoImpl;
+
+    query
+        .validate()
+        .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
+
+    let use_case = GetTicketsForUser::new(
+        users_repo,
+        games_repo,
+        lotteries_repo,
+        &query.phone,
+        Arc::clone(&state.db),
+    );
+
+    use_case.execute().await
+}
 
 /// Purchases lottery tickets
 ///
@@ -198,6 +246,50 @@ pub async fn mark_lottery_as_unpaid(
     let use_case = MarkPurchaseAsUnpaidUseCase::new(purchases_repo, Arc::clone(&state.db));
 
     use_case.execute(&params.purchase_id).await
+}
+
+/// Obtener ticket de compra en PDF
+///
+/// Genera un PDF con la información de la compra y números ganadores
+#[utoipa::path(
+    get,
+    path = "/purchase/{purchase_id}/ticket",
+    tags = ["lottery"],
+    params(("purchase_id" = Uuid, Path, description = "Identificador de la compra")),
+    responses(
+        (status = 200, description = "Ticket generado exitosamente", content_type = "application/pdf", body = Vec<u8>),
+        (status = 400, description = "Datos inválidos", body = Rfc7807Problem),
+        (status = 404, description = "Compra no encontrada", body = Rfc7807Problem)
+    )
+)]
+pub async fn get_purchase_ticket_pdf(
+    State(state): State<Arc<AppState>>,
+    Path(purchase_id): Path<Uuid>,
+) -> Result<Response, Box<Rfc7807Problem>> {
+    let purchases_repo = PurchasesRepoImpl;
+    let games_repo = GamesRepoImpl;
+
+    let use_case =
+        GetPurchaseTicketPdfUseCase::new(purchases_repo, games_repo, Arc::clone(&state.db));
+
+    let pdf_bytes = use_case.execute(&purchase_id).await?;
+    let filename = format!("ticket-{}.pdf", purchase_id);
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(CONTENT_TYPE, "application/pdf")
+        .header(
+            CONTENT_DISPOSITION,
+            format!("inline; filename=\"{}\"", filename),
+        )
+        .body(Body::from(pdf_bytes))
+        .map_err(|_| {
+            Box::new(Rfc7807Problem::server_error(
+                Some("No se pudo generar la respuesta"),
+                Some("Ocurrió un error al enviar el archivo"),
+                Some("PDF_RESPONSE_ERROR"),
+            ))
+        })
 }
 
 /// @admin Get purchases by game ID

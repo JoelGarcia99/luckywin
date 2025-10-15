@@ -31,6 +31,18 @@ services:
       - root_password
       - root_social_reason
       - support_email
+  gotenberg:
+    container_name: luckywin_gotenberg
+    image: gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      luckywin:
+        ipv4_address: 172.37.0.14
   api-prod:
     container_name: luckywin_api
     build:

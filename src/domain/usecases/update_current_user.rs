@@ -67,7 +67,7 @@ impl UpdateCurrentUserUseCase {
         }
 
         if let Some(email) = &dto.email {
-            active_model.email = Set(email.clone());
+            active_model.email = Set(Some(email.clone()));
         }
 
         let updated_user = self
@@ -77,17 +77,7 @@ impl UpdateCurrentUserUseCase {
             .data;
 
         Ok(StandardResponse::simple(
-            UserOutputDto {
-                id: updated_user.id,
-                first_name: updated_user.first_name,
-                last_name: updated_user.last_name,
-                location: updated_user.location,
-                cellphone: updated_user.cellphone,
-                email: updated_user.email,
-                role: updated_user.role,
-                created_at: updated_user.created_at.into(),
-                updated_at: updated_user.updated_at.into(),
-            },
+            updated_user.into(),
             Some("Usuario actualizado correctamente"),
         ))
     }

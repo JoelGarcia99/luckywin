@@ -13,7 +13,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub cellphone: String,
     #[sea_orm(unique)]
-    pub email: String,
+    pub email: Option<String>,
     #[sea_orm(column_type = "Text", nullable)]
     pub password: Option<String>,
     pub role: String,

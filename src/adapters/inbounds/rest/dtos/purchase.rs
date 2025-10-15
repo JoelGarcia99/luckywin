@@ -27,7 +27,7 @@ pub struct CreatePurchaseDto {
         pattern = r#"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}"#,
         message = "El correo electrónico no es válido"
     )]
-    pub client_email: String,
+    pub client_email: Option<String>,
     /// mobile phone must start with +593 or 09. If it belongs with +593 it must be 13 chars long. If it belongs with 09 it must be 10 chars long
     #[validate(
         pattern = r#"^(?:\+593\s?9\d{8}|09\d{8})$"#,

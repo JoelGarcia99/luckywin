@@ -143,7 +143,7 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone, R4: PurchasesRepo
                     client.name,
                     client.last_name.clone().unwrap_or_default()
                 ),
-                Some(&client.email),
+                client.email.as_deref(),
                 Some(&purchase_dto.client_cellphone),
                 purchase_dto.location.as_deref(),
                 total_paid,
@@ -180,12 +180,7 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone, R4: PurchasesRepo
                 |t| crate::adapters::outbound::rest::dtos::purchases::TicketOutputDto {
                     id: t.id,
                     serial: t.serial,
-                    numbers: t
-                        .numbers
-                        .into_iter()
-                        .map(|n| n.to_string())
-                        .collect::<Vec<_>>()
-                        .join(","),
+                    numbers: t.numbers,
                     created_at: t.created_at,
                     updated_at: t.created_at, // Use created_at since updated_at doesn't exist in LotteryOutputDto
                 },

@@ -36,7 +36,11 @@ impl<'a, R: ClientsRepo, C: ConnectionTrait> UpsertClientUseCase<'a, R, C> {
         };
 
         // determining if the user already exists
-        match self.repo.get_client_by_email(&client.email, self.db).await {
+        match self
+            .repo
+            .get_client_by_cellphone(&client.cellphone, self.db)
+            .await
+        {
             Ok(client) => {
                 self.repo
                     .update_client(&client.data.id, &active_model, self.db)

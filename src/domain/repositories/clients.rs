@@ -30,7 +30,11 @@ pub trait ClientsRepo: Send + Sync + Copy {
     where
         C: ConnectionTrait;
 
-    async fn get_client_by_email<C>(&self, email: &str, db: &C) -> StandardOutput<ClientOutputDto>
+    async fn get_client_by_cellphone<C>(
+        &self,
+        cellphone: &str,
+        db: &C,
+    ) -> StandardOutput<ClientOutputDto>
     where
         C: ConnectionTrait;
 

@@ -6,7 +6,8 @@ use crate::{
         game::{close_game, create_game, get_last_active_game, reopen_game},
         health::check_health,
         lottery::{
-            get_lotteries_by_game, mark_lottery_as_paid, mark_lottery_as_unpaid, purchase_lottery,
+            get_lotteries_by_game, get_lotteries_by_user, get_purchase_ticket_pdf,
+            mark_lottery_as_paid, mark_lottery_as_unpaid, purchase_lottery,
         },
         user::{get_current_user, get_user_by_cellphone, update_current_user},
     },
@@ -25,6 +26,8 @@ pub const PURCHASE_LOTTERY: &str = "/lottery/purchase";
 pub const MARK_LOTTERY_AS_PAID: &str = "/lottery/mark-as-paid";
 pub const MARK_LOTTERY_AS_UNPAID: &str = "/lottery/mark-as-unpaid";
 pub const GET_LOTTERIES_BY_GAME: &str = "/lottery/by-game/{game_id}";
+pub const GET_LOTTERIES_BY_USER: &str = "/lottery/by-user";
+pub const GET_PURCHASE_TICKET_PDF: &str = "/lottery/purchase/{purchase_id}/ticket";
 
 // games
 pub const CREATE_GAME: &str = "/games";
@@ -57,6 +60,10 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
             GET_LOTTERIES_BY_GAME,
             axum::routing::get(get_lotteries_by_game),
         )
+        .route(
+            GET_PURCHASE_TICKET_PDF,
+            axum::routing::get(get_purchase_ticket_pdf),
+        )
         // Game routes
         .route(CREATE_GAME, axum::routing::post(create_game))
         .route(CLOSE_GAME, axum::routing::post(close_game))
@@ -73,5 +80,9 @@ pub fn build_routes_v1() -> axum::Router<Arc<AppState>> {
         .route(
             GET_USER_BY_CELLPHONE,
             axum::routing::get(get_user_by_cellphone),
+        )
+        .route(
+            GET_LOTTERIES_BY_USER,
+            axum::routing::get(get_lotteries_by_user),
         )
 }

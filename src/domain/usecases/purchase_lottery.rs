@@ -121,7 +121,7 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone> PurchaseLotteryUs
                 id: Set(Uuid::new_v4()),
                 numbers: Set(bitboards::parse_vec_into_bitboard(ticket.numbers)),
                 id_game: Set(game.id),
-                email: Set(Some(client.email.clone())),
+                email: Set(client.email.clone()),
                 client_name: Set(format!(
                     "{} {}",
                     client.name,
