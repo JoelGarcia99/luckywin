@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Luckywin Ticket</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
         @page {
             size: 80mm 150mm;
@@ -12,17 +12,19 @@
         }
 
         :root {
-            --background-color: #1a202c;
-            --ticket-background: #2d3748;
-            --primary-color: #facc15;
+            --background-gradient-start: #1a202c;
+            --background-gradient-end: #2d3748;
+            --ticket-gradient-start: #0f172a;
+            --ticket-gradient-end: #1e293b;
+            --primary-gold: #facc15;
             --text-color: #f7fafc;
             --secondary-text-color: #a0aec0;
         }
 
         body {
             margin: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--background-color);
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle, var(--background-gradient-end) 0%, var(--background-gradient-start) 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,27 +35,29 @@
         .ticket {
             width: 80mm;
             height: 150mm;
-            background-color: var(--ticket-background);
+            background: linear-gradient(135deg, var(--ticket-gradient-end) 0%, var(--ticket-gradient-start) 100%);
             color: var(--text-color);
             border-radius: 16px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--primary-gold);
         }
 
         .header {
             text-align: center;
-            border-bottom: 1px solid var(--secondary-text-color);
+            border-bottom: 1px solid var(--primary-gold);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
 
         .brand {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
-            color: var(--primary-color);
-            letter-spacing: 2px;
+            color: var(--primary-gold);
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--primary-gold);
         }
 
         .game-name {
@@ -67,9 +71,10 @@
 
         .numbers-title {
             text-align: center;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             margin-bottom: 15px;
+            color: var(--primary-gold);
         }
 
         .number-sets {
@@ -82,14 +87,16 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            background-color: #4a5568;
+            background-color: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 10px;
+            padding: 15px;
         }
 
         .digit {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
+            color: var(--primary-gold);
+            text-shadow: 0 0 5px var(--primary-gold);
         }
 
         .info-section {
@@ -97,7 +104,7 @@
             justify-content: space-between;
             font-size: 12px;
             color: var(--secondary-text-color);
-            border-top: 1px solid var(--secondary-text-color);
+            border-top: 1px solid var(--primary-gold);
             padding-top: 10px;
         }
 
@@ -111,7 +118,7 @@
 
         @media print {
             body {
-                background-color: #fff;
+                background: #fff;
                 padding: 0;
             }
 
