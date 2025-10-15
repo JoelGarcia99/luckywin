@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, Utc};
+use chrono_tz::America::Bogota;
 use reqwest::Client;
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
@@ -74,8 +75,8 @@ impl GetPurchaseTicketPdfUseCase {
             game_serial: game.id.to_string(),
             purchase_serial: format_serial(purchase.serial),
             purchase_date: format_datetime(purchase.created_at),
-            game_closes_at: format_game_close(game.closes_at),
-            total_paid: format!("{:.2}", purchase.total_paid as f64),
+            game_closes_at: format_game_close(game.closes_at.map(|dt| dt.to_utc())),
+            total_paid: format!("{:.2}", purchase.total_paid as f64 / 100.0),
             number_sets: build_number_sets(&purchase.tickets),
         };
 
@@ -93,12 +94,16 @@ impl GetPurchaseTicketPdfUseCase {
 }
 
 fn format_datetime(datetime: DateTime<Utc>) -> String {
-    datetime.format("%d/%m/%Y %H:%M UTC").to_string()
+    let bogota_time = datetime.with_timezone(&Bogota);
+    bogota_time.format("%Y-%m-%d %H:%M").to_string()
 }
 
-fn format_game_close(datetime: Option<DateTime<FixedOffset>>) -> String {
+fn format_game_close(datetime: Option<DateTime<Utc>>) -> String {
     datetime
-        .map(|dt| dt.format("%d/%m/%Y %H:%M %Z").to_string())
+        .map(|dt| {
+            let bogota_time = dt.with_timezone(&Bogota);
+            bogota_time.format("%Y-%m-%d %H:%M").to_string()
+        })
         .unwrap_or_else(|| "Pendiente por definir".into())
 }
 
