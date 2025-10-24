@@ -24,6 +24,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+### PRODUCTION SAFETY CHECK
+if [ "$PROFILE" = "prod" ]; then
+  echo "⚠️  WARNING: You are about to deploy to PRODUCTION!"
+  echo ""
+  read -r -p "Type 'PRODUCTION' (all caps) to confirm: " CONFIRMATION
+  if [ "$CONFIRMATION" != "PRODUCTION" ]; then
+    echo "❌ Production deployment cancelled. You must type exactly 'PRODUCTION' to proceed."
+    exit 1
+  fi
+  echo "✓ Production deployment confirmed"
+  echo ""
+fi
+
 ### CONFIG
 SSH_USER="root"
 SSH_HOST="176.126.87.212"
