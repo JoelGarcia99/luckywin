@@ -48,7 +48,7 @@ async fn build_scalar_html() -> Html<&'static str> {
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Users API</title>
+  <title>Luckywin API</title>
   <style>
     html,body,#app{height:100%;margin:0}
     input{flex:1}

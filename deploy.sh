@@ -4,14 +4,43 @@
 # Local req: docker. Server req: docker compose.
 set -euo pipefail
 
+### PARSE ARGUMENTS
+PROFILE="test"  # Default to test
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --test)
+      PROFILE="test"
+      shift
+      ;;
+    --prod)
+      PROFILE="prod"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Usage: $0 [--test|--prod]"
+      exit 1
+      ;;
+  esac
+done
+
 ### CONFIG
 SSH_USER="root"
 SSH_HOST="176.126.87.212"
 SSH_PORT="22"
-REMOTE_DIR="/root/development/luckywin-back"
+REMOTE_BASE_DIR="/root/development/luckywin-back"
+
+# Adjust remote dir based on profile
+if [ "$PROFILE" = "test" ]; then
+  REMOTE_DIR="${REMOTE_BASE_DIR}-test"
+else
+  REMOTE_DIR="${REMOTE_BASE_DIR}"
+fi
 
 # Base compose on server (kept under version control)
 COMPOSE_FILE="docker-compose.yml"
+
+echo "==> Deploying to ${PROFILE} environment (${REMOTE_DIR})"
 
 # WHITELIST: ONLY these paths get synced to server (relative to repo root)
 # Include runtime-only config, not secrets or volumes.
@@ -19,7 +48,7 @@ SYNC_ITEMS=(
   "docker-compose.yml"           # compose file
   "./migration/"                    # DB migrations crate (SeaORM)
 	"Makefile"                      # Makefile
-  #"ops/haproxy-smtp.cfg"              # smtp-proxy haproxy cfg
+  "./ops/"                        # Operations scripts
 )
 
 # Build contexts/targets
@@ -148,6 +177,48 @@ docker save -o "${TAR_FILE}" "${IMG_TAG_API}"
 echo "==> Ensure remote dir"
 ${SSH} "mkdir -p '${REMOTE_DIR}'"
 
+### CHECK AND CREATE SECRETS IF MISSING
+echo "==> Checking secrets on remote server"
+SECRET_FILES=(
+  "environment"
+  "dsn"
+  "dsn_seeder"
+  "jwt_at_exp"
+  "jwt_aud"
+  "jwt_kid"
+  "jwt_password"
+  "jwt_rt_exp"
+  "root_dni"
+  "root_email"
+  "root_password"
+  "root_social_reason"
+  "support_email"
+  "db_user"
+  "db_password"
+  "db_name"
+)
+
+MISSING_SECRETS=()
+for secret in "${SECRET_FILES[@]}"; do
+  if ! ${SSH} "[ -f '${REMOTE_DIR}/secrets/${secret}.txt' ]"; then
+    MISSING_SECRETS+=("$secret")
+  fi
+done
+
+if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+  echo "==> Missing secrets detected. Please provide values:"
+  ${SSH} "mkdir -p '${REMOTE_DIR}/secrets'"
+
+  for secret in "${MISSING_SECRETS[@]}"; do
+    echo ""
+    read -r -p "Enter value for ${secret}: " SECRET_VALUE
+    ${SSH} "echo '${SECRET_VALUE}' > '${REMOTE_DIR}/secrets/${secret}.txt'"
+    echo "    ✓ Created ${secret}.txt"
+  done
+  echo ""
+  echo "==> All secrets created successfully"
+fi
+
 echo "==> Sync whitelisted runtime config"
 for item in "${SYNC_ITEMS[@]}"; do
   # Create parent dir on server
@@ -171,9 +242,8 @@ ${SCP} "${TAR_FILE}" "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/"
 echo "==> Create compose override on server"
 ${SSH} "cat > '${OVERRIDE_REMOTE}' <<'YAML'
 services:
-  api-prod:
+  api-${PROFILE}:
     image: ${IMG_TAG_API}
-    build: null
     environment:
       RUST_LOG: info
 YAML
@@ -185,7 +255,9 @@ ${SSH} "bash -lc \"
   set -euo pipefail
   cd '${REMOTE_DIR}'
   docker load -i '$(basename "${TAR_FILE}")'
-  docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' --profile prod up -d
+  # Stop all services first (including orphans from old setup)
+  docker compose -f '${COMPOSE_FILE}' --profile ${PROFILE} down --remove-orphans || true
+  docker compose -f '${COMPOSE_FILE}' -f '${OVERRIDE_NAME}' --profile ${PROFILE} up -d
   echo '==> Checking for gateway service'
   if docker ps -a --format '{{.Names}}' | grep -q '^luckywin_gateway$'; then
     echo '==> Restarting luckywin_gateway to load updated routes'

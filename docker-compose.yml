@@ -13,6 +13,8 @@ services:
     networks:
       luckywin:
         ipv4_address: 172.37.0.10
+        aliases:
+          - api
     volumes:
       - .:/app  # live-mount code for hot-reload
     environment:
@@ -35,6 +37,8 @@ services:
     container_name: luckywin_gotenberg
     image: gotenberg/gotenberg:8.20
     restart: unless-stopped
+    profiles:
+      - dev
     logging:
       driver: json-file
       options:
@@ -43,8 +47,44 @@ services:
     networks:
       luckywin:
         ipv4_address: 172.37.0.14
-  api-prod:
-    container_name: luckywin_api
+        aliases:
+          - gotenberg
+
+  gotenberg-test:
+    container_name: luckywin_gotenberg_test
+    image: gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    profiles:
+      - test
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      luckywin-test:
+        ipv4_address: 172.38.0.14
+        aliases:
+          - gotenberg
+
+  gotenberg-prod:
+    container_name: luckywin_gotenberg_prod
+    image: gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    profiles:
+      - prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      luckywin-prod:
+        ipv4_address: 172.39.0.14
+        aliases:
+          - gotenberg
+  api-test:
+    container_name: luckywin_api_test
     build:
       context: .
       dockerfile: Dockerfile
@@ -52,12 +92,44 @@ services:
     ports:
       - "8082:8080"
     profiles:
-      - prod
+      - test
     depends_on:
-      - authdb
+      - authdb-test
     networks:
-      luckywin:
-        ipv4_address: 172.37.0.10
+      luckywin-test:
+        ipv4_address: 172.38.0.10
+        aliases:
+          - api
+    secrets:
+      - environment
+      - dsn
+      - jwt_at_exp
+      - jwt_aud
+      - jwt_kid
+      - jwt_password
+      - jwt_rt_exp
+      - root_dni
+      - root_email
+      - root_password
+      - root_social_reason
+      - support_email
+  api-prod:
+    container_name: luckywin_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - "7082:8080"
+    profiles:
+      - prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      luckywin-prod:
+        ipv4_address: 172.39.0.10
+        aliases:
+          - api
     secrets:
       - environment
       - dsn
@@ -75,17 +147,46 @@ services:
   authdb:
     image: postgres:16.2-alpine
     container_name: luckywin_authdb
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: luckywin
+    entrypoint: ["/entrypoint.sh"]
+    command: ["postgres"]
     volumes:
       - ./luckywin_db_data:/var/lib/postgresql/data
+      - ./ops/postgres-entrypoint.sh:/entrypoint.sh:ro
     ports:
       - "5436:5432"
+    profiles:
+      - dev
+    secrets:
+      - db_user
+      - db_password
+      - db_name
     networks:
       luckywin:
         ipv4_address: 172.37.0.11
+        aliases:
+          - authdb
+
+  authdb-test:
+    image: postgres:16.2-alpine
+    container_name: luckywin_authdb_test
+    entrypoint: ["/entrypoint.sh"]
+    command: ["postgres"]
+    volumes:
+      - ./luckywin_db_data_test:/var/lib/postgresql/data
+      - ./ops/postgres-entrypoint.sh:/entrypoint.sh:ro
+    ports:
+      - "5437:5432"
+    profiles:
+      - test
+    secrets:
+      - db_user
+      - db_password
+      - db_name
+    networks:
+      luckywin-test:
+        ipv4_address: 172.38.0.11
+        aliases:
+          - authdb
 
 networks:
   luckywin:
@@ -93,6 +194,16 @@ networks:
     ipam:
       config:
         - subnet: 172.37.0.0/16
+  luckywin-test:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.38.0.0/16
+  luckywin-prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.39.0.0/16
 
 volumes:
   api_deps:
@@ -110,3 +221,6 @@ secrets:
   root_password:      { file: ./secrets/root_password.txt }
   root_social_reason: { file: ./secrets/root_social_reason.txt }
   support_email:      { file: ./secrets/support_email.txt }
+  db_user:            { file: ./secrets/db_user.txt }
+  db_password:        { file: ./secrets/db_password.txt }
+  db_name:            { file: ./secrets/db_name.txt }

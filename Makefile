@@ -1,5 +1,6 @@
 # Define the database URL here or expect it in your environment
-DATABASE_URL ?= postgres://postgres:postgres@localhost:5436/luckywin
+# Try to read from secrets/dsn_seeder.txt first, fallback to default
+DATABASE_URL ?= $(shell [ -f secrets/dsn_seeder.txt ] && cat secrets/dsn_seeder.txt || echo "postgres://postgres:postgres@localhost:5436/luckywin")
 
 # Path to sea-orm-cli
 SEA = sea-orm-cli

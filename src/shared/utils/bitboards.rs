@@ -2,9 +2,11 @@ use sea_orm::prelude::Decimal;
 
 /// Parses a given array of numbers into a bitboard representation
 pub fn parse_vec_into_bitboard(vec: Vec<u8>) -> Decimal {
-    let mut bitboard = 0;
+    let mut bitboard: u128 = 0;
 
     for num in vec {
+        // priting binary representation of number
+        tracing::debug!("bit num: {} {:b}", num, num);
         bitboard |= 1 << num;
     }
 
