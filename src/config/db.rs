@@ -19,11 +19,10 @@ pub async fn connect_db(secrets: &crate::config::env::SecretsVariables) -> Arc<D
         .sqlx_logging(false)
         .set_schema_search_path("public");
 
-    tracing::info!("Connected to database: {:?}", &secrets.dsn);
-    let db = match Database::connect(db_opts).await {
+    tracing::info!("Connected to database");
+    tracing::debug!("DB DSN: {}", secrets.dsn);
+    match Database::connect(db_opts).await {
         Ok(db) => Arc::new(db),
         Err(err) => panic!("Failed to connect to database: {}", err),
-    };
-
-    db
+    }
 }

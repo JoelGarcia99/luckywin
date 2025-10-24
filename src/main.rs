@@ -24,6 +24,33 @@ async fn main() {
         db: connect_db(&secrets).await,
     });
 
+    // Configure CORS based on environment
+    let cors_layer = if state.secrets.environment.to_lowercase() == "prod" {
+        // Production: only allow juegalofacil.com
+        CorsLayer::new()
+            .allow_origin([
+                "https://juegalofacil.com".parse::<axum::http::HeaderValue>().unwrap(),
+                "https://www.juegalofacil.com".parse::<axum::http::HeaderValue>().unwrap(),
+            ])
+            .allow_methods([
+                axum::http::Method::GET,
+                axum::http::Method::POST,
+                axum::http::Method::PUT,
+                axum::http::Method::DELETE,
+                axum::http::Method::PATCH,
+                axum::http::Method::OPTIONS,
+            ])
+            .allow_headers([
+                axum::http::header::CONTENT_TYPE,
+                axum::http::header::AUTHORIZATION,
+                axum::http::header::ACCEPT,
+            ])
+            .allow_credentials(true)
+    } else {
+        // Development/other: permissive CORS
+        CorsLayer::permissive()
+    };
+
     // defining app router
     let app = Router::new()
         .nest(
@@ -32,7 +59,7 @@ async fn main() {
         )
         .with_state(Arc::clone(&state))
         .layer(NormalizePathLayer::trim_trailing_slash())
-        .layer(CorsLayer::permissive());
+        .layer(cors_layer);
 
     // listening on target port
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();

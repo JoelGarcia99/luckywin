@@ -28,13 +28,12 @@ done
 SSH_USER="root"
 SSH_HOST="176.126.87.212"
 SSH_PORT="22"
-REMOTE_BASE_DIR="/root/development/luckywin-back"
 
-# Adjust remote dir based on profile
+# Set remote directory based on profile
 if [ "$PROFILE" = "test" ]; then
-  REMOTE_DIR="${REMOTE_BASE_DIR}-test"
+  REMOTE_DIR="/root/development/tests/luckywin-back"
 else
-  REMOTE_DIR="${REMOTE_BASE_DIR}"
+  REMOTE_DIR="/root/development/luckywin-back"
 fi
 
 # Base compose on server (kept under version control)

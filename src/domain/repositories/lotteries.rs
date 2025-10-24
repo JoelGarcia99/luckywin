@@ -41,7 +41,7 @@ pub trait LotteriesRepo: Send + Sync {
         C: ConnectionTrait;
 
     /// Retrieves all the tickets from users for the current game
-    async fn find_tickets_by_user<C>(
+    async fn find_paid_tickets_by_user<C>(
         &self,
         id_user: &Uuid,
         id_game: &Uuid,

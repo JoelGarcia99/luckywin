@@ -35,7 +35,7 @@ use crate::{
             create_purchase::CreatePurchaseUseCase,
             get_purchase_ticket_pdf::GetPurchaseTicketPdfUseCase,
             get_purchases_by_game::GetPurchasesByGameUseCase,
-            get_tickets_for_user::GetTicketsForUser,
+            get_tickets_for_user::GetPaidTicketsForUser,
             mark_purchase_as_paid::MarkPurchaseAsPaidUseCase,
             mark_purchase_as_unpaid::MarkPurchaseAsUnpaidUseCase,
         },
@@ -86,7 +86,7 @@ pub async fn get_lotteries_by_user(
         .validate()
         .map_err(|r| Rfc7807Problem::from_validator_err(&r.to_string()))?;
 
-    let use_case = GetTicketsForUser::new(
+    let use_case = GetPaidTicketsForUser::new(
         users_repo,
         games_repo,
         lotteries_repo,
@@ -269,8 +269,12 @@ pub async fn get_purchase_ticket_pdf(
     let purchases_repo = PurchasesRepoImpl;
     let games_repo = GamesRepoImpl;
 
-    let use_case =
-        GetPurchaseTicketPdfUseCase::new(purchases_repo, games_repo, Arc::clone(&state.db));
+    let use_case = GetPurchaseTicketPdfUseCase::new(
+        purchases_repo,
+        games_repo,
+        Arc::clone(&state.db),
+        state.secrets.environment.clone(),
+    );
 
     let pdf_bytes = use_case.execute(&purchase_id).await?;
     let filename = format!("ticket-{}.pdf", purchase_id);

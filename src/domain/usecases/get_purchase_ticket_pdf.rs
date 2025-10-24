@@ -23,6 +23,7 @@ pub struct GetPurchaseTicketPdfUseCase {
     purchases_repo: PurchasesRepoImpl,
     games_repo: GamesRepoImpl,
     db: Arc<DatabaseConnection>,
+    environment: String,
 }
 
 impl GetPurchaseTicketPdfUseCase {
@@ -30,11 +31,13 @@ impl GetPurchaseTicketPdfUseCase {
         purchases_repo: PurchasesRepoImpl,
         games_repo: GamesRepoImpl,
         db: Arc<DatabaseConnection>,
+        environment: String,
     ) -> Self {
         Self {
             purchases_repo,
             games_repo,
             db,
+            environment,
         }
     }
 
@@ -81,6 +84,8 @@ impl GetPurchaseTicketPdfUseCase {
             game_closes_at: format_game_close(game.closes_at.map(|dt| dt.to_utc())),
             total_paid: format!("{:.2}", purchase.total_paid as f64 / 100.0),
             number_sets: build_number_sets(&tickets),
+            environment: self.environment.clone(),
+            is_paid: purchase.status.to_lowercase() == "paid",
         };
 
         let html = render_luckywin_ticket(&context);

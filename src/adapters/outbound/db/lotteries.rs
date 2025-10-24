@@ -11,8 +11,7 @@ use crate::{
         rest::dtos::{lottery::LotteryOutputDto, purchases::TicketOutputDto},
     },
     domain::{
-        entities::{lotteries, purchases},
-        repositories::lotteries::LotteriesRepo,
+        entities::{lotteries, purchases}, enums::lottery_status::LotteryStatus, repositories::lotteries::LotteriesRepo
     },
     shared::{
         errors::{PaginatorResponse, StandardOutput, StandardResponse},
@@ -123,7 +122,7 @@ impl LotteriesRepo for LotteriesRepoImpl {
         Ok(StandardResponse::with_paginator(dtos, paginator, None))
     }
 
-    async fn find_tickets_by_user<C>(
+    async fn find_paid_tickets_by_user<C>(
         &self,
         id_user: &Uuid,
         id_game: &Uuid,
@@ -137,6 +136,7 @@ impl LotteriesRepo for LotteriesRepoImpl {
             .join(JoinType::InnerJoin, lotteries::Relation::Purchases.def())
             .filter(purchases::Column::IdClient.eq(*id_user))
             .filter(lotteries::Column::IdGame.eq(*id_game))
+            .filter(purchases::Column::Status.eq(LotteryStatus::Paid.to_string()))
             .filter(lotteries::Column::DeletedAt.is_null())
             .filter(purchases::Column::DeletedAt.is_null())
             .all(db)

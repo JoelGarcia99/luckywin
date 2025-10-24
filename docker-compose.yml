@@ -63,7 +63,7 @@ services:
         max-file: "3"
     networks:
       luckywin-test:
-        ipv4_address: 172.38.0.14
+        ipv4_address: 172.40.0.14
         aliases:
           - gotenberg
 
@@ -80,7 +80,7 @@ services:
         max-file: "3"
     networks:
       luckywin-prod:
-        ipv4_address: 172.39.0.14
+        ipv4_address: 172.41.0.14
         aliases:
           - gotenberg
   api-test:
@@ -97,7 +97,7 @@ services:
       - authdb-test
     networks:
       luckywin-test:
-        ipv4_address: 172.38.0.10
+        ipv4_address: 172.40.0.10
         aliases:
           - api
     secrets:
@@ -127,7 +127,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       luckywin-prod:
-        ipv4_address: 172.39.0.10
+        ipv4_address: 172.41.0.10
         aliases:
           - api
     secrets:
@@ -184,7 +184,7 @@ services:
       - db_name
     networks:
       luckywin-test:
-        ipv4_address: 172.38.0.11
+        ipv4_address: 172.40.0.11
         aliases:
           - authdb
 
@@ -198,12 +198,12 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.38.0.0/16
+        - subnet: 172.40.0.0/16
   luckywin-prod:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.39.0.0/16
+        - subnet: 172.41.0.0/16
 
 volumes:
   api_deps:

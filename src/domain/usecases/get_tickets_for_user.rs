@@ -17,7 +17,7 @@ use crate::{
     shared::errors::StandardOutput,
 };
 
-pub struct GetTicketsForUser<'a> {
+pub struct GetPaidTicketsForUser<'a> {
     users_repo: UsersRepoImpl,
     games_repo: GamesRepoImpl,
     lotteries_repo: LotteriesRepoImpl,
@@ -25,7 +25,7 @@ pub struct GetTicketsForUser<'a> {
     db: Arc<DatabaseConnection>,
 }
 
-impl<'a> GetTicketsForUser<'a> {
+impl<'a> GetPaidTicketsForUser<'a> {
     pub fn new(
         users_repo: UsersRepoImpl,
         games_repo: GamesRepoImpl,
@@ -54,7 +54,7 @@ impl<'a> GetTicketsForUser<'a> {
         let game_id = last_active_game_usecase.execute().await?.data.id;
 
         self.lotteries_repo
-            .find_tickets_by_user(&user_id, &game_id, &*self.db)
+            .find_paid_tickets_by_user(&user_id, &game_id, &*self.db)
             .await
     }
 }
