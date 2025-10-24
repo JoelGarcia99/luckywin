@@ -129,8 +129,8 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone, R4: PurchasesRepo
             }
         }
 
-        // Calculate total price
-        let total_paid = game.ticket_price * num_tickets as i32;
+        // Each purchase has the same ticket_price regardless of number of tickets
+        let total_paid = game.ticket_price;
 
         // Create the purchase first (serial will be auto-incremented by the database)
         let mut purchase = self
