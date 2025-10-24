@@ -116,6 +116,17 @@ impl<R: LotteriesRepo, R2: GamesRepo, R3: ClientsRepo + Clone, R4: PurchasesRepo
                 )));
             }
 
+            // All numbers must be between 1 and 75
+            for &number in &ticket.numbers {
+                if !(1..=75).contains(&number) {
+                    return Err(Box::new(Rfc7807Problem::simple_bad_request(
+                        Some("Error al comprar sus tickets"),
+                        Some("Todos los números deben estar entre 1 y 75"),
+                        None,
+                    )));
+                }
+            }
+
             // Transform into bitboards
             let binary = bitboards::parse_vec_into_bitboard(ticket.numbers.clone());
 
