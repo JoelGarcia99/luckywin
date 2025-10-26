@@ -24,6 +24,7 @@ pub struct GetPurchaseTicketPdfUseCase {
     games_repo: GamesRepoImpl,
     db: Arc<DatabaseConnection>,
     environment: String,
+    http_client: Arc<Client>,
 }
 
 impl GetPurchaseTicketPdfUseCase {
@@ -32,12 +33,14 @@ impl GetPurchaseTicketPdfUseCase {
         games_repo: GamesRepoImpl,
         db: Arc<DatabaseConnection>,
         environment: String,
+        http_client: Arc<Client>,
     ) -> Self {
         Self {
             purchases_repo,
             games_repo,
             db,
             environment,
+            http_client,
         }
     }
 
@@ -89,15 +92,16 @@ impl GetPurchaseTicketPdfUseCase {
         };
 
         let html = render_luckywin_ticket(&context);
-        let client = Client::new();
 
-        send_html_to_gotenberg(&html, &client).await.map_err(|_| {
-            Box::new(Rfc7807Problem::server_error(
-                Some("No se pudo generar el PDF"),
-                Some("Tuvimos un inconveniente al convertir el ticket"),
-                Some("PDF_GENERATION_ERROR"),
-            ))
-        })
+        send_html_to_gotenberg(&html, self.http_client.as_ref())
+            .await
+            .map_err(|_| {
+                Box::new(Rfc7807Problem::server_error(
+                    Some("No se pudo generar el PDF"),
+                    Some("Tuvimos un inconveniente al convertir el ticket"),
+                    Some("PDF_GENERATION_ERROR"),
+                ))
+            })
     }
 }
 

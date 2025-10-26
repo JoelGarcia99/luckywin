@@ -3,6 +3,8 @@ use reqwest::{
     multipart::{Form, Part},
 };
 
+use crate::shared::templates::assets;
+
 /// Sends HTML content to Gotenberg and receives a PDF back
 ///
 /// # Arguments
@@ -26,7 +28,7 @@ pub async fn send_html_to_gotenberg(html: &str, client: &Client) -> Result<Vec<u
     };
 
     // Construct the multipart form with the field "files" as expected by Gotenberg
-    let form = Form::new()
+    let mut form = Form::new()
         .part("files", part)
         .text("paperWidth", "3.15")
         .text("paperHeight", "6.69")
@@ -34,6 +36,21 @@ pub async fn send_html_to_gotenberg(html: &str, client: &Client) -> Result<Vec<u
         .text("marginBottom", "0")
         .text("marginLeft", "0")
         .text("marginRight", "0");
+
+    for &(path, font_bytes) in assets::INTER_FONT_ASSETS.iter() {
+        let font_part = match Part::bytes(font_bytes.to_vec())
+            .file_name(path.to_string())
+            .mime_str("font/ttf")
+        {
+            Ok(font_part) => font_part,
+            Err(err) => {
+                tracing::error!("Failed to prepare font asset {}: {:?}", path, err);
+                return Err(());
+            }
+        };
+
+        form = form.part("files", font_part);
+    }
 
     // Make the POST request with the multipart form
     let response = match client

@@ -12,6 +12,7 @@ use crate::{
     },
     domain::{
         entities::{lotteries, purchases},
+        enums::lottery_status::LotteryStatus,
         repositories::purchases::PurchasesRepo,
     },
     shared::{
@@ -48,7 +49,7 @@ impl PurchasesRepo for PurchasesRepoImpl {
             client_cellphone: Set(client_cellphone.map(|s| s.to_string())),
             location: Set(location.map(|s| s.to_string())),
             total_paid: Set(total_paid),
-            status: Set("pending".to_string()),
+            status: Set(LotteryStatus::Unpaid.to_string()),
             created_at: Set(chrono::Utc::now().into()),
             updated_at: Set(chrono::Utc::now().into()),
             deleted_at: Set(None),
@@ -150,7 +151,7 @@ impl PurchasesRepo for PurchasesRepoImpl {
                 ))
             })?;
 
-        if purchase.status == "paid" {
+        if purchase.status == LotteryStatus::Paid.to_string() {
             return Err(Box::new(Rfc7807Problem::simple_bad_request(
                 Some("Compra ya pagada"),
                 Some("Esta compra ya ha sido marcada como pagada"),
@@ -159,7 +160,7 @@ impl PurchasesRepo for PurchasesRepoImpl {
         }
 
         let mut active_model: purchases::ActiveModel = purchase.into();
-        active_model.status = Set("paid".to_string());
+        active_model.status = Set(LotteryStatus::Paid.to_string());
         active_model.updated_at = Set(chrono::Utc::now().into());
 
         let updated_purchase = active_model

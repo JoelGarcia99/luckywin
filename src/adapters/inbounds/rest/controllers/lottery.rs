@@ -274,6 +274,7 @@ pub async fn get_purchase_ticket_pdf(
         games_repo,
         Arc::clone(&state.db),
         state.secrets.environment.clone(),
+        Arc::clone(&state.http_client),
     );
 
     let pdf_bytes = use_case.execute(&purchase_id).await?;

@@ -2,6 +2,8 @@ use std::fmt::Write;
 
 const TEMPLATE: &str = include_str!("luckywin_ticket.html");
 
+pub mod assets;
+
 #[derive(Debug, Clone)]
 pub struct LuckyNumberSet {
     pub digits: Vec<String>,

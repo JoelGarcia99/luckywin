@@ -11,7 +11,9 @@ use crate::{
         rest::dtos::{lottery::LotteryOutputDto, purchases::TicketOutputDto},
     },
     domain::{
-        entities::{lotteries, purchases}, enums::lottery_status::LotteryStatus, repositories::lotteries::LotteriesRepo
+        entities::{lotteries, purchases},
+        enums::lottery_status::LotteryStatus,
+        repositories::lotteries::LotteriesRepo,
     },
     shared::{
         errors::{PaginatorResponse, StandardOutput, StandardResponse},

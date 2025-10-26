@@ -1,13 +1,15 @@
+use std::fmt::Display;
+
 pub enum LotteryStatus {
     Paid,
     Unpaid,
 }
 
-impl ToString for LotteryStatus {
-    fn to_string(&self) -> String {
+impl Display for LotteryStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LotteryStatus::Paid => "pagado".to_string(),
-            LotteryStatus::Unpaid => "pendiente".to_string(),
+            LotteryStatus::Paid => write!(f, "paid"),
+            LotteryStatus::Unpaid => write!(f, "unpaid"),
         }
     }
 }

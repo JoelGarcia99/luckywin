@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::Router;
+use reqwest::Client;
 use tower_http::{cors::CorsLayer, normalize_path::NormalizePathLayer};
 
 use crate::config::{db::connect_db, tracing::build_tracing};
@@ -19,9 +20,12 @@ async fn main() {
     build_tracing(&secrets);
     tracing::debug!("Tracings defined");
 
+    let http_client = Arc::new(Client::new());
+
     let state = Arc::new(config::state::AppState {
         secrets: Arc::clone(&secrets),
         db: connect_db(&secrets).await,
+        http_client,
     });
 
     // Configure CORS based on environment
@@ -29,8 +33,12 @@ async fn main() {
         // Production: only allow juegalofacil.com
         CorsLayer::new()
             .allow_origin([
-                "https://juegalofacil.com".parse::<axum::http::HeaderValue>().unwrap(),
-                "https://www.juegalofacil.com".parse::<axum::http::HeaderValue>().unwrap(),
+                "https://juegalofacil.com"
+                    .parse::<axum::http::HeaderValue>()
+                    .unwrap(),
+                "https://www.juegalofacil.com"
+                    .parse::<axum::http::HeaderValue>()
+                    .unwrap(),
             ])
             .allow_methods([
                 axum::http::Method::GET,
